@@ -42,19 +42,25 @@ def test_update_pet():
 
     # update pet
     updated_pet = {
-        "id": pet_id,  # generated server side
-        "category": {"id": 0, "name": pet["category"]["name"]},
-        "name": "updated name",
-        "photoUrls": [pet["photoUrls"]],
-        "tags": [{"id": 0, "name": "my tag name"}],
+        # "id": 0, # defined server side
+        "category": {
+            # "id": 0, # set to 0 by default server side
+            "name": "test category name"
+        },
+        "name": "updated doggie name",
+        "photoUrls": ["my_photo_url"],
+        "tags": [
+            {
+                # "id": 0, # set to 0 by default server side
+                "name": "my tag name"
+            }
+        ],
         "status": "unavailable",
     }
     update_pet_response = update_pet(updated_pet)
     update_pet_data = update_pet_response.json()
     print("UPDATE_PET DATA:", update_pet_data)
-    # assert update_pet_response.status_code == 200
-    # currently gives a 500
-    # check new pet data to see what get stuck
+    assert update_pet_response.status_code == 200
 
     # get updated pet, check new data
 
