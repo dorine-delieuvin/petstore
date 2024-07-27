@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-# python -m pytest -v -s .\test_pet.py
+# python -m pytest -v -s .\test_pet.py::test_update_pet
 
 endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
@@ -39,30 +39,44 @@ def test_update_pet():
     assert post_pet_response.status_code == 200
 
     pet_id = post_pet_response.json()["id"]
+    # print("PET ID:", pet_id)
 
     # update pet
     updated_pet = {
-        # "id": 0, # defined server side
+        "id": pet_id,
         "category": {
-            # "id": 0, # set to 0 by default server side
-            "name": "test category name"
+            # "id": 0,  # set to 0 by default server side
+            "name": "test category name",
         },
         "name": "updated doggie name",
         "photoUrls": ["my_photo_url"],
         "tags": [
             {
-                # "id": 0, # set to 0 by default server side
+                # "id": 0,
                 "name": "my tag name"
             }
-        ],
+        ],  # set to 0 by default server side
         "status": "unavailable",
     }
     update_pet_response = update_pet(updated_pet)
     update_pet_data = update_pet_response.json()
-    print("UPDATE_PET DATA:", update_pet_data)
+    # print("UPDATE_PET DATA:", update_pet_data)
     assert update_pet_response.status_code == 200
 
     # get updated pet, check new data
+    get_updated_pet_response = get_pet(pet_id)
+    assert get_updated_pet_response.status_code == 200
+
+    get_updated_pet_data = get_updated_pet_response.json()
+    # print("UPDATED DATA:", get_updated_pet_data)
+    assert get_updated_pet_data["name"] == updated_pet["name"]
+    assert get_updated_pet_data["status"] == updated_pet["status"]
+
+    # testing error 400: Invalid ID supplied
+
+    # testing error 404: Pet not found
+
+    # testing error 405: Validation exception
 
 
 def post_pet(pet):
