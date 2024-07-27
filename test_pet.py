@@ -72,12 +72,6 @@ def test_update_pet():
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
-    # testing error 400: Invalid ID supplied
-
-    # testing error 404: Pet not found
-
-    # testing error 405: Validation exception
-
 
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
