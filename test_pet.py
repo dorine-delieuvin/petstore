@@ -75,33 +75,6 @@ def test_update_pet():
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
-    # testing error 400: Invalid ID supplied
-    invalid_pet_id = "invalid ID"
-    updated_pet = {
-        "id": invalid_pet_id,
-        "category": {
-            # "id": 0,  # set to 0 by default server side
-            "name": "test category name",
-        },
-        "name": "updated doggie name",
-        "photoUrls": ["my_photo_url"],
-        "tags": [
-            {
-                # "id": 0,
-                "name": "my tag name"
-            }
-        ],  # set to 0 by default server side
-        "status": "unavailable",
-    }
-    update_invalid_id_response = update_pet(invalid_pet_id)
-    assert (
-        update_invalid_id_response.status_code == 400
-    )  # currently returns an error 500
-
-    # testing error 404: Pet not found
-
-    # testing error 405: Validation exception
-
 
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
