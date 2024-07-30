@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-# python -m pytest -v -s .\test_pet.py::test_update_pet
+# python -m pytest -v -s .\test_pet.py::test_post_image
 
 endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
@@ -62,7 +62,7 @@ def test_update_pet():
         "status": "unavailable",
     }
     update_pet_response = update_pet(updated_pet)
-    update_pet_data = update_pet_response.json()
+    # update_pet_data = update_pet_response.json()
     # print("UPDATE_PET DATA:", update_pet_data)
     assert update_pet_response.status_code == 200
 
@@ -74,6 +74,26 @@ def test_update_pet():
     # print("UPDATED DATA:", get_updated_pet_data)
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
+
+
+def test_post_image():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    pet_id = post_pet_response.json()["id"]
+    print("PET ID:", pet_id)
+    # need to figure out why always same pet ID, even when new pet created
+
+    # upload image
+    image = "my_image_url.jpg"
+    post_image_response = post_image(pet_id, image)
+    assert post_image_response.status_code == 200
+    # currently getting 404
+    # image not "uploaded"
+
+    # check image data
 
 
 def post_pet(pet):
@@ -88,8 +108,8 @@ def update_pet(pet):
     return requests.put(api + "/pet", json=pet)
 
 
-def post_image(petId):
-    return requests.post(endpoint + f"/pet/{petId}/uploadImage")
+def post_image(petId, image):
+    return requests.post(endpoint + f"/pet/{petId}/uploadImage", json=image)
 
 
 def new_pet():
