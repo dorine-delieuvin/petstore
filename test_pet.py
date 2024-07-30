@@ -42,7 +42,7 @@ def test_update_pet():
     assert post_pet_response.status_code == 200
 
     pet_id = post_pet_response.json()["id"]
-    # print("PET ID:", pet_id)
+    print("PET ID:", pet_id)
 
     # update pet
     updated_pet = {
@@ -62,7 +62,7 @@ def test_update_pet():
         "status": "unavailable",
     }
     update_pet_response = update_pet(updated_pet)
-    update_pet_data = update_pet_response.json()
+    # update_pet_data = update_pet_response.json()
     # print("UPDATE_PET DATA:", update_pet_data)
     assert update_pet_response.status_code == 200
 
@@ -76,7 +76,7 @@ def test_update_pet():
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
     # testing error 400: Invalid ID supplied
-    invalid_pet_id = "invalid ID"
+    invalid_pet_id = 9223372036854775809
     updated_pet = {
         "id": invalid_pet_id,
         "category": {
@@ -94,13 +94,8 @@ def test_update_pet():
         "status": "unavailable",
     }
     update_invalid_id_response = update_pet(invalid_pet_id)
-    assert (
-        update_invalid_id_response.status_code == 400
-    )  # currently returns an error 500
-
-    # testing error 404: Pet not found
-
-    # testing error 405: Validation exception
+    assert update_invalid_id_response.status_code == 400
+    # currently returns an error 500
 
 
 def post_pet(pet):
