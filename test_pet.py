@@ -1,5 +1,6 @@
 import pytest
 import requests
+import random
 
 # python -m pytest -v -s .\test_pet.py::test_post_image
 
@@ -84,18 +85,20 @@ def test_post_image():
 
     pet_id = post_pet_response.json()["id"]
     print("PET ID:", pet_id)
-    # need to figure out why always same pet ID, even when new pet created
 
     # upload image
-    image = "my_image_url.jpg"
+    metadata = "test file metadata"
+    file = "my_image_url.jpg"
+    image = new_image(pet_id, metadata, file)
+
     post_image_response = post_image(pet_id, image)
     assert post_image_response.status_code == 200
-    # currently getting 404
-    # image not "uploaded"
+    # currently getting 404 > image not "uploading"
 
     # check image data
 
 
+## API Calls
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
 
@@ -113,8 +116,10 @@ def post_image(petId, image):
 
 
 def new_pet():
+    pet_id = random.randint(10000, 1000000000000)
+
     return {
-        # "id": 0, # defined server side
+        "id": pet_id,
         "category": {
             # "id": 0, # set to 0 by default server side
             "name": "test category name"
@@ -128,4 +133,12 @@ def new_pet():
             }
         ],
         "status": "available",
+    }
+
+
+def new_image(pet_id, metadata=None, image=None):
+    return {
+        "id": pet_id,
+        "additional_metadata": metadata,
+        "file": image,
     }
