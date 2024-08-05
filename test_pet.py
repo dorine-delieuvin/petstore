@@ -84,16 +84,16 @@ def test_post_image():
     assert post_pet_response.status_code == 200
 
     pet_id = post_pet_response.json()["id"]
-    print("PET ID:", pet_id)
+    # print("PET ID:", pet_id)
 
     # upload image
-    metadata = "test file metadata"
-    file = "my_image_url.jpg"
-    image = new_image(pet_id, metadata, file)
+    image_path = "C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\test_image.jpg"
+    image = {"file": open(image_path, "rb")}
 
     post_image_response = post_image(pet_id, image)
     assert post_image_response.status_code == 200
-    # currently getting 404 > image not "uploading"
+
+    # When not providing with an image (which is not marked as required on their documentation, which should probably be), getig error 415.
 
     # check image data
 
@@ -111,8 +111,8 @@ def update_pet(pet):
     return requests.put(api + "/pet", json=pet)
 
 
-def post_image(petId, image):
-    return requests.post(endpoint + f"/pet/{petId}/uploadImage", json=image)
+def post_image(pet_id, image):
+    return requests.post(api + f"/pet/{pet_id}/uploadImage", files=image)
 
 
 def new_pet():
