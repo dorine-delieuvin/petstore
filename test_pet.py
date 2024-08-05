@@ -2,7 +2,7 @@ import pytest
 import requests
 import random
 
-# python -m pytest -v -s .\test_pet.py::test_post_image
+# python -m pytest -v -s .\test_pet.py::test_update_pet
 
 endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
@@ -44,7 +44,7 @@ def test_update_pet():
     assert post_pet_response.status_code == 200
 
     pet_id = post_pet_response.json()["id"]
-    # print("PET ID:", pet_id)
+    print("PET ID:", pet_id)
 
     # update pet
     updated_pet = {
@@ -76,6 +76,16 @@ def test_update_pet():
     # print("UPDATED DATA:", get_updated_pet_data)
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
+
+    # testing error 400: Invalid ID supplied
+    invalid_pet_id = -1
+    update_invalid_id_response = update_pet(invalid_pet_id)
+    try:
+        assert update_invalid_id_response.status_code == 400
+    except:
+        print(
+            f"Fails, gives a status {update_invalid_id_response.status_code}, instead of 400."
+        )
 
 
 def test_post_image():
