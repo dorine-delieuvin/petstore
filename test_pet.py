@@ -30,8 +30,9 @@ def test_post_pet():
     get_pet_data = get_pet_response.json()
     assert get_pet_data["status"] == pet["status"]
     assert get_pet_data["name"] == pet["name"]
+    # should fail, correct name: "doggie"
     try:
-        get_pet_data["name"] == ["douggie"]  # should fail, correct name: "doggie"
+        assert get_pet_data["name"] == ["douggie"]
     except:
         print("Failed as intended.")
 
@@ -84,18 +85,18 @@ def test_post_image():
     assert post_pet_response.status_code == 200
 
     pet_id = post_pet_response.json()["id"]
-    # print("PET ID:", pet_id)
 
     # upload image
-    image_path = "C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\test_image.jpg"
+    image_name = "test_image.jpg"
+    image_path = f"C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\{image_name}"
     image = {"file": open(image_path, "rb")}
 
     post_image_response = post_image(pet_id, image)
     assert post_image_response.status_code == 200
 
-    # When not providing with an image (which is not marked as required on their documentation, which should probably be), getig error 415.
-
     # check image data
+    post_image_data = post_image_response.json()
+    assert image_name in post_image_data["message"]
 
 
 ## API Calls
@@ -133,12 +134,4 @@ def new_pet():
             }
         ],
         "status": "available",
-    }
-
-
-def new_image(pet_id, metadata=None, image=None):
-    return {
-        "id": pet_id,
-        "additional_metadata": metadata,
-        "file": image,
     }
