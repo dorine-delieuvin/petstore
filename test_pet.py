@@ -64,8 +64,6 @@ def test_update_pet():
         "status": "unavailable",
     }
     update_pet_response = update_pet(updated_pet)
-    # update_pet_data = update_pet_response.json()
-    # print("UPDATE_PET DATA:", update_pet_data)
     assert update_pet_response.status_code == 200
 
     # get updated pet, check new data
@@ -73,7 +71,6 @@ def test_update_pet():
     assert get_updated_pet_response.status_code == 200
 
     get_updated_pet_data = get_updated_pet_response.json()
-    # print("UPDATED DATA:", get_updated_pet_data)
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
