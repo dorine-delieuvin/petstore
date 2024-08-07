@@ -38,6 +38,11 @@ def test_post_pet():
 
 
 def test_update_pet():
+    """
+    NOTE #1: Sometimes fails to assert the updated pet name.
+    NOTE #2: Sometimes returns a 404 instead of 200 when creating a new pet.
+    Those are assumed to be due to server activity as the tests pass successfully when re-run most of the time.
+    """
     # create pet
     pet = new_pet()
     post_pet_response = post_pet(pet)
@@ -74,15 +79,33 @@ def test_update_pet():
     assert get_updated_pet_data["name"] == updated_pet["name"]
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
+
+def test_update_pet_400():
     # testing error 400: Invalid ID supplied
-    invalid_pet_id = -1
+    """
+    NOTE: returns an error 500 instead of 400.
+    """
+    invalid_pet_id = 0.5
     update_invalid_id_response = update_pet(invalid_pet_id)
-    try:
-        assert update_invalid_id_response.status_code == 400
-    except:
-        print(
-            f"Fails, gives a status {update_invalid_id_response.status_code}, instead of 400."
-        )
+    assert (
+        update_invalid_id_response.status_code == 400
+    ), f"Fails, gives a status {update_invalid_id_response.status_code}, instead of 400."
+
+
+def test_update_pet_404():
+    # testing error 404: Pet not found
+    """
+    NOTE: returns a 200 instead of 404 for any presumed invalid ID trialed.
+    """
+    invalid_pet = {
+        "id": -0.5,  # presummed invalid ID
+        "name": "Invalid",
+        "status": "unavailable",
+    }
+    update_invalid_pet_response = update_pet(invalid_pet)
+    assert (
+        update_invalid_pet_response.status_code == 404
+    ), f"Fails, gives a status {update_invalid_pet_response.status_code}, instead of 404."
 
 
 def test_post_image():
@@ -124,7 +147,7 @@ def post_image(pet_id, image):
 
 
 def new_pet():
-    pet_id = random.randint(10000, 1000000000000)
+    pet_id = random.randint(1, 99999999999)
 
     return {
         "id": pet_id,
