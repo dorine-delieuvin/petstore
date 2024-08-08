@@ -13,6 +13,7 @@ def test_get_endpoint():
     assert get_endpoint_response.status_code == 200
 
 
+# python -m pytest -v -s .\test_pet.py::test_post_pet
 def test_post_pet():
     # create pet
     pet = new_pet()
@@ -30,11 +31,10 @@ def test_post_pet():
     get_pet_data = get_pet_response.json()
     assert get_pet_data["status"] == pet["status"]
     assert get_pet_data["name"] == pet["name"]
-    # should fail, correct name: "doggie"
-    try:
-        assert get_pet_data["name"] == ["douggie"]
-    except:
-        print("Failed as intended.")
+    # should fail:
+    assert (
+        get_pet_data["name"] == "douggie"
+    ), "Failed as intended, correct name: 'doggie'"
 
 
 def test_update_pet():
