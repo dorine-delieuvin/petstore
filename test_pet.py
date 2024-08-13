@@ -130,6 +130,58 @@ def test_post_image():
     assert image_name in post_image_data["message"]
 
 
+# python -m pytest -v -s .\test_pet.py::test_get_pet
+def test_get_pet():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    pet_id = post_pet_response.json()["id"]
+    print(pet_id)
+
+    # get pet
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+
+    # check pet info
+    get_pet_data = get_pet_response.json()
+    assert get_pet_data["id"] == pet_id
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_404
+def test_get_pet_404():
+    # don't create pet
+    # get pet
+    inexistant_pet_id = 0
+    get_pet_response = get_pet(inexistant_pet_id)
+    assert get_pet_response.status_code == 404
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_400
+def test_get_pet_400():
+    """
+    NOTE: when providing an invalid pet ID, the API assigned a default ID "9223372036854775807" to the pet instead of returning an error
+    """
+    # create pet
+    pet = new_pet()
+    pet["id"] = -0.5
+    post_pet_response = post_pet(pet)
+    print(pet["id"])
+    assert post_pet_response.status_code == 200
+
+    invalid_pet_id = post_pet_response.json()["id"]
+    print(invalid_pet_id)
+
+    # get pet
+    get_pet_response = get_pet(invalid_pet_id)
+    assert (
+        get_pet_response.status_code == 400
+    ), f"Fails, gives a status {get_pet_response.status_code}, instead of 400."
+
+
 ## API Calls
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
