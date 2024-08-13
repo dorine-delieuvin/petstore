@@ -157,15 +157,17 @@ def test_get_pet_404():
     # get pet
     inexistant_pet_id = 0
     get_pet_response = get_pet(inexistant_pet_id)
-    assert get_pet_response.status_code == 404
+    assert (
+        get_pet_response.status_code == 404
+    ), f"Fails, gives a status {get_pet_response.status_code}, instead of 404."
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_400
 def test_get_pet_400():
     """
-    NOTE: when providing an invalid pet ID, the API assigned a default ID "9223372036854775807" to the pet instead of returning an error
+    NOTE: when providing an invalid pet ID, the API assigns a default ID "9223372036854775807" to the pet instead of returning an error
     """
-    # create pet
+    # create pet with an invalid ID
     pet = new_pet()
     pet["id"] = -0.5
     post_pet_response = post_pet(pet)
@@ -176,10 +178,10 @@ def test_get_pet_400():
     print(invalid_pet_id)
 
     # get pet
-    get_pet_response = get_pet(invalid_pet_id)
+    get_invalid_pet_response = get_pet(invalid_pet_id)
     assert (
-        get_pet_response.status_code == 400
-    ), f"Fails, gives a status {get_pet_response.status_code}, instead of 400."
+        get_invalid_pet_response.status_code == 400
+    ), f"Fails, gives a status {get_invalid_pet_response.status_code}, instead of 400."
 
 
 ## API Calls
