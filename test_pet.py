@@ -37,6 +37,7 @@ def test_post_pet():
     ), "Failed as intended, correct name: 'doggie'"
 
 
+# python -m pytest -v -s .\test_pet.py::test_update_pet
 def test_update_pet():
     """
     NOTE #1: Sometimes fails to assert the updated pet name.
@@ -95,7 +96,7 @@ def test_update_pet_400():
 def test_update_pet_404():
     # testing error 404: Pet not found
     """
-    NOTE: returns a 200 instead of 404 for any presumed invalid ID trialed.
+    NOTE: returns a 200 instead of 404 for any presumed invalid ID tried.
     """
     invalid_pet = {
         "id": -0.5,  # presummed invalid ID
