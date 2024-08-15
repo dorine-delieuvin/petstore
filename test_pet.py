@@ -227,39 +227,38 @@ def test_get_pet_by_several_statuses():
     NOTE: when selecting more than one status in the search, only the first status is returned in the response.
     '''
     # test variables
-    status = [None, "available", "pending", "sold"]
-    no_status = status[0]
-    status1 = status[1]
-    status2 = status[2]
-    status3 = status[3]
-    tested_statuses = status2, status3
+    valid_status = ["available", "pending", "sold"]
+    status1 = valid_status[1]
+    status2 = None
+    status3 = valid_status[2]
+    tested_statuses = status1, status2, status3
 
     # create pets with tested statuses
-    pet1 = new_pet()
-    pet2 = new_pet()
-    pet3 = new_pet()
-    pet1["status"], pet1["name"] = status1, "my pet 1"
-    pet2["status"], pet2["name"] = status2, "my pet 2"
-    pet3["status"], pet3["name"] = status3, "my pet 3"
+    for status in valid_status:
+        # create pet with status
+        pet = new_pet()
+        pet["status"], pet["name"] = status, "my pet"
 
-    post_pet1_response = post_pet(pet1)
-    post_pet2_response = post_pet(pet2)
-    post_pet3_response = post_pet(pet3)
-    assert post_pet1_response.status_code and post_pet2_response.status_code and post_pet3_response.status_code == 200
+        post_pet_response = post_pet(pet)
+        assert post_pet_response.status_code == 200
 
     # find pets by tested statuses
-    get_pet_by_status_response = get_pet_by_status(status2, status3)
+    get_pet_by_status_response = get_pet_by_status(status1, status2, status3)
     assert get_pet_by_status_response.status_code == 200
 
     # check all pets in response have correct tested statuses
     get_pet_by_status_data = get_pet_by_status_response.json()
     returned_statuses = []
+
     for pet in get_pet_by_status_data:
         print(pet["status"])
         if pet["status"] not in returned_statuses:
             returned_statuses.append(pet["status"])
         assert pet["status"] in tested_statuses, "Incorrect statuses in response"
-    assert tested_statuses in returned_statuses, "Missing statuses in response"
+    
+    # check all requested status with existing pets are returned
+    for i in tested_statuses:
+        assert i in returned_statuses, f"Missing at least status '{i}' in response: {returned_statuses}" #need to delete "None" entries before this check
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
@@ -292,7 +291,6 @@ def test_get_pet_by_status_400():
     invalid_status = [None, "unavailable", "not so valid", "3210", "escaped"]
 
     # create pets with invalid_status
-    i = 0
     response_status_codes = []
 
     for status in invalid_status:
