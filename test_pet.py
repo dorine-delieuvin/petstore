@@ -31,10 +31,6 @@ def test_post_pet():
     get_pet_data = get_pet_response.json()
     assert get_pet_data["status"] == pet["status"]
     assert get_pet_data["name"] == pet["name"]
-    # should fail:
-    assert (
-        get_pet_data["name"] == "douggie"
-    ), "Failed as intended, correct name: 'doggie'"
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet
@@ -184,6 +180,143 @@ def test_get_pet_400():
     ), f"Fails, gives a status {get_invalid_pet_response.status_code}, instead of 400."
 
 
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status
+def test_get_pet_by_status():
+    # test variables
+    status = [None, "available", "pending", "sold"]
+    tested_status = status[1]
+
+    # create pets with tested_status
+    pet1 = new_pet()
+    pet2 = new_pet()
+    pet1["status"], pet1["name"] = tested_status, "my pet 1"
+    pet2["status"], pet2["name"] = tested_status, "my pet 2"
+
+    post_pet1_response = post_pet(pet1)
+    post_pet2_response = post_pet(pet2)
+    assert post_pet1_response.status_code and post_pet2_response.status_code == 200
+
+    # find pets by tested status
+    get_pet_by_status_response = get_pet_by_status(tested_status)
+    assert get_pet_by_status_response.status_code == 200
+
+    # check all pets in response have correct tested status
+    get_pet_by_status_data = get_pet_by_status_response.json()
+
+    for pet in get_pet_by_status_data:
+        assert pet["status"] == tested_status, "Incorrect statuses in response"
+
+    # check if created IDs in response
+    pet1_id = pet1["id"]
+    pet2_id = pet2["id"]
+    found = 0
+
+    for pet in get_pet_by_status_data:
+        if pet["id"] == pet1_id:
+            found += 1
+        elif pet["id"] == pet2_id:
+            found += 1
+    if found != 2:
+        print("Created pets with tested status not found.")
+        raise Exception
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_several_statuses
+def test_get_pet_by_several_statuses():
+    '''
+    NOTE: when selecting more than one status in the search, only the first status is returned in the response.
+    '''
+    # test variables
+    status = [None, "available", "pending", "sold"]
+    no_status = status[0]
+    status1 = status[1]
+    status2 = status[2]
+    status3 = status[3]
+    tested_statuses = status2, status3
+
+    # create pets with tested statuses
+    pet1 = new_pet()
+    pet2 = new_pet()
+    pet3 = new_pet()
+    pet1["status"], pet1["name"] = status1, "my pet 1"
+    pet2["status"], pet2["name"] = status2, "my pet 2"
+    pet3["status"], pet3["name"] = status3, "my pet 3"
+
+    post_pet1_response = post_pet(pet1)
+    post_pet2_response = post_pet(pet2)
+    post_pet3_response = post_pet(pet3)
+    assert post_pet1_response.status_code and post_pet2_response.status_code and post_pet3_response.status_code == 200
+
+    # find pets by tested statuses
+    get_pet_by_status_response = get_pet_by_status(status2, status3)
+    assert get_pet_by_status_response.status_code == 200
+
+    # check all pets in response have correct tested statuses
+    get_pet_by_status_data = get_pet_by_status_response.json()
+    returned_statuses = []
+    for pet in get_pet_by_status_data:
+        print(pet["status"])
+        if pet["status"] not in returned_statuses:
+            returned_statuses.append(pet["status"])
+        assert pet["status"] in tested_statuses, "Incorrect statuses in response"
+    assert tested_statuses in returned_statuses, "Missing statuses in response"
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
+def test_get_pet_by_status_empty():
+    '''
+    NOTE:
+    - exploited the fact "invalid" statuses don't return an error 400.
+    - used a made up status ("unused status") without creating a pet to test functionality.
+    - as many pets exist for all official status "available", "pending" and "sold", deleting all of them would be time consuming and disturbing other users.
+    '''
+    # test variables
+    status = [None, "available", "pending", "sold", "unused status"]
+    tested_status = status[4]
+
+    # do not create pet
+    # try to find pets by tested status
+    get_pet_by_status_empty_response = get_pet_by_status(tested_status)
+    assert get_pet_by_status_empty_response.status_code == 200
+
+    get_pet_by_status_empty_data = get_pet_by_status_empty_response.json()
+    assert get_pet_by_status_empty_data == []
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_400
+def test_get_pet_by_status_400():
+    '''
+    NOTE: gives 200 even with a status other than "available", "pending" or "sold".
+    '''
+    # test variables
+    invalid_status = [None, "unavailable", "not so valid", "3210", "escaped"]
+
+    # create pets with invalid_status
+    i = 0
+    response_status_codes = []
+
+    for status in invalid_status:
+        # create pet with invalid status
+        invalid_pet = new_pet()
+        invalid_pet["status"], invalid_pet["name"] = status, "my invalid pet"
+
+        post_invalid_pet_response = post_pet(invalid_pet)
+        assert post_invalid_pet_response.status_code == 200
+
+        # find pet by the invalid_status and store response status code
+        get_invalid_pet_by_status_response = get_pet_by_status(status)
+        response_status_codes.append(get_invalid_pet_by_status_response.status_code)
+
+    print(response_status_codes)
+    assert (
+        response_status_codes[0]
+        and response_status_codes[1]
+        and response_status_codes[2]
+        and response_status_codes[3]
+        and response_status_codes[4]
+            ) == 400, f"Fails, at least one status code different from 400: {response_status_codes}"
+
+
 ## API Calls
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
@@ -199,6 +332,26 @@ def update_pet(pet):
 
 def post_image(pet_id, image):
     return requests.post(api + f"/pet/{pet_id}/uploadImage", files=image)
+
+
+def get_pet_by_status(status1=None, status2=None, status3=None):
+    url = api + f"/pet/findByStatus"
+
+    if status1 != None:
+        url += f"?status={status1}"
+
+    if status2 != None and status1 != None:
+        url += f"&status={status2}"
+    elif status2 != None:
+        url += f"?status={status2}"
+
+    if status3 != None and (status1 != None or status2 != None):
+        url += f"&status={status3}"
+    elif status3 != None:
+        url += f"?status={status3}"
+
+    print(url)
+    return requests.get(url)
 
 
 def new_pet():
