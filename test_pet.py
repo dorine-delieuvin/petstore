@@ -226,12 +226,11 @@ def test_get_pet_by_several_statuses():
     """
     NOTE: when selecting more than one status in the search, only the first status is returned in the response.
     """
-    # test variables
+    # test variables - update status1, 2, 3 to the status to test in list valid_status
     valid_status = ["available", "pending", "sold"]
     status1 = valid_status[2]
     status2 = valid_status[1]
     status3 = None
-    statuses = [status1, status2, status3]
 
     # create pets with tested statuses
     for status in valid_status:
@@ -243,6 +242,7 @@ def test_get_pet_by_several_statuses():
         assert post_pet_response.status_code == 200
 
     # find pets by tested statuses
+    statuses = [status1, status2, status3]
     get_pet_by_status_response = get_pet_by_status(status1, status2, status3)
     assert get_pet_by_status_response.status_code == 200
 
