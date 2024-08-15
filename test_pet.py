@@ -223,15 +223,15 @@ def test_get_pet_by_status():
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_several_statuses
 def test_get_pet_by_several_statuses():
-    '''
+    """
     NOTE: when selecting more than one status in the search, only the first status is returned in the response.
-    '''
+    """
     # test variables
     valid_status = ["available", "pending", "sold"]
-    status1 = valid_status[1]
-    status2 = None
-    status3 = valid_status[2]
-    tested_statuses = status1, status2, status3
+    status1 = valid_status[2]
+    status2 = valid_status[1]
+    status3 = None
+    statuses = [status1, status2, status3]
 
     # create pets with tested statuses
     for status in valid_status:
@@ -246,29 +246,37 @@ def test_get_pet_by_several_statuses():
     get_pet_by_status_response = get_pet_by_status(status1, status2, status3)
     assert get_pet_by_status_response.status_code == 200
 
+    # removing the "None" status from the list of tested status
+    tested_statuses = []
+    
+    for i in statuses:
+        if i != None:
+            tested_statuses.append(i)
+    
     # check all pets in response have correct tested statuses
     get_pet_by_status_data = get_pet_by_status_response.json()
     returned_statuses = []
 
     for pet in get_pet_by_status_data:
-        print(pet["status"])
         if pet["status"] not in returned_statuses:
             returned_statuses.append(pet["status"])
-        assert pet["status"] in tested_statuses, "Incorrect statuses in response"
-    
+        assert pet["status"] in tested_statuses, f"Incorrect status {pet["status"]} in response"
+
     # check all requested status with existing pets are returned
     for i in tested_statuses:
-        assert i in returned_statuses, f"Missing at least status '{i}' in response: {returned_statuses}" #need to delete "None" entries before this check
+        assert (
+            i in returned_statuses
+        ), f"Missing at least status '{i}' in response:\nTested statuses: {tested_statuses}\nReturned statuses: {returned_statuses}"
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
 def test_get_pet_by_status_empty():
-    '''
+    """
     NOTE:
     - exploited the fact "invalid" statuses don't return an error 400.
     - used a made up status ("unused status") without creating a pet to test functionality.
     - as many pets exist for all official status "available", "pending" and "sold", deleting all of them would be time consuming and disturbing other users.
-    '''
+    """
     # test variables
     status = [None, "available", "pending", "sold", "unused status"]
     tested_status = status[4]
@@ -284,9 +292,9 @@ def test_get_pet_by_status_empty():
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_400
 def test_get_pet_by_status_400():
-    '''
+    """
     NOTE: gives 200 even with a status other than "available", "pending" or "sold".
-    '''
+    """
     # test variables
     invalid_status = [None, "unavailable", "not so valid", "3210", "escaped"]
 
@@ -312,7 +320,9 @@ def test_get_pet_by_status_400():
         and response_status_codes[2]
         and response_status_codes[3]
         and response_status_codes[4]
-            ) == 400, f"Fails, at least one status code different from 400: {response_status_codes}"
+    ) == 400, (
+        f"Fails, at least one status code different from 400: {response_status_codes}"
+    )
 
 
 ## API Calls
