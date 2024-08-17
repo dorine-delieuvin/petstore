@@ -2,12 +2,10 @@ import pytest
 import requests
 import random
 
-# python -m pytest -v -s .\test_pet.py::test_update_pet
-
 endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
 
-
+# python -m pytest -v -s .\test_pet.py::test_get_endpoint
 def test_get_endpoint():
     get_endpoint_response = requests.get(endpoint)
     assert get_endpoint_response.status_code == 200
@@ -77,6 +75,7 @@ def test_update_pet():
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
 
+# python -m pytest -v -s .\test_pet.py::test_update_pet_400
 def test_update_pet_400():
     # testing error 400: Invalid ID supplied
     """
@@ -89,6 +88,7 @@ def test_update_pet_400():
     ), f"Fails, gives a status {update_invalid_id_response.status_code}, instead of 400."
 
 
+# python -m pytest -v -s .\test_pet.py::test_update_pet_404
 def test_update_pet_404():
     # testing error 404: Pet not found
     """
@@ -105,6 +105,7 @@ def test_update_pet_404():
     ), f"Fails, gives a status {update_invalid_pet_response.status_code}, instead of 404."
 
 
+# python -m pytest -v -s .\test_pet.py::test_post_image
 def test_post_image():
     # create pet
     pet = new_pet()
@@ -325,6 +326,40 @@ def test_get_pet_by_status_400():
     )
 
 
+# python -m pytest -v -s .\test_pet.py::test_post_data_form
+def test_post_data_form():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"]) # doggie
+    assert get_pet_data["name"] == pet["name"]
+    
+    # update name only via form
+    form = {
+        "name": "Max",
+        #"status":
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    assert post_data_form_response.status_code == 200, f"Failed, gives {post_data_form_response.status_code} instead of 200"
+    
+    # check data has been updated
+    get_updated_pet_response = get_pet(pet_id)
+    get_updated_pet_data = get_updated_pet_response.json()
+    print(get_updated_pet_data["name"])
+    assert get_updated_pet_data["name"] == form["name"]
+
 ## API Calls
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
@@ -360,6 +395,9 @@ def get_pet_by_status(status1=None, status2=None, status3=None):
 
     print(url)
     return requests.get(url)
+
+def post_data_form(pet_id, form):
+    return requests.post(api + f"/pet/{pet_id}", data=form)
 
 
 def new_pet():
