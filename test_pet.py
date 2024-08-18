@@ -454,8 +454,12 @@ def test_post_data_form_unused_id():
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_empty_name
 def test_post_data_form_empty_name():
+    '''
+    NOTE: when empty name given via form, the name remain unchanged. No error is raised.
+    '''
     # create pet
     pet = new_pet()
+    pet["name"] = "Max"
     post_pet_response = post_pet(pet)
     assert post_pet_response.status_code == 200
 
@@ -479,7 +483,13 @@ def test_post_data_form_empty_name():
     }
     
     post_data_form_response = post_data_form(pet_id, form)
-    #need to check how name has been updated as not returning a 404 but 200
+    
+    # check the pet info after update
+    get_updated_pet_reponse = get_pet(pet_id)
+    assert get_updated_pet_reponse.status_code == 200
+    get_updated_pet_data = get_updated_pet_reponse.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    
     assert post_data_form_response.status_code == 400, f"Failed, gives {post_data_form_response.status_code} instead of 400"
     
 
