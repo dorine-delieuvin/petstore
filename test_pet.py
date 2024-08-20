@@ -517,10 +517,51 @@ def test_post_data_form_invalid_status():
     assert get_pet_data["name"] == pet["name"]
     assert get_pet_data["status"] == pet["status"]
         
-    # attempt to update with empty name
+    # attempt to update with invalid status
     form = {
         #"name": "Valid",
         "status": "flying"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    
+    # check the pet info after update
+    get_updated_pet_reponse = get_pet(pet_id)
+    assert get_updated_pet_reponse.status_code == 200
+    get_updated_pet_data = get_updated_pet_reponse.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    
+    assert post_data_form_response.status_code == 400, f"Failed, gives {post_data_form_response.status_code} instead of 400"
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_no_data
+def test_post_data_form_no_data():
+    '''
+    NOTE: when empty form is submitted, the name and status remain unchanged. No error is raised, 200 is returned.
+    '''
+    # create pet
+    pet = new_pet()
+    pet["name"] = "Perfect"
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"], get_pet_data["status"]) # Perfect, available
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+        
+    # attempt to update with empty form
+    form = {
+        #"name": "Valid",
+        #"status": "sold"
     }
     
     post_data_form_response = post_data_form(pet_id, form)
