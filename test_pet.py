@@ -22,6 +22,7 @@ def test_post_pet():
 
     # check the created pet
     pet_id = post_pet_data["id"]
+    print(pet_id)
     get_pet_response = get_pet(pet_id)
     assert get_pet_response.status_code == 200
 
@@ -577,9 +578,6 @@ def test_post_data_form_no_data():
 
 # python -m pytest -v -s .\test_pet.py::test_delete_pet
 def test_delete_pet():
-    # test variables
-    api_key = "special-key"
-    
     # create pet
     pet = new_pet()
     pet["name"] = "Butter"
@@ -599,7 +597,7 @@ def test_delete_pet():
     assert get_pet_data["name"] == pet["name"]
     
     # delete pet
-    delete_pet_response = delete_pet(pet_id, api_key)
+    delete_pet_response = delete_pet(pet_id)
     assert delete_pet_response.status_code == 200
     
     # check pet is deleted
@@ -607,6 +605,19 @@ def test_delete_pet():
     get_pet_data = get_pet_response.json()
     assert get_pet_response.status_code == 404, f"Failded, gived code {get_pet_response.status_code} instead of 404"
     assert get_pet_data["message"] == "Pet not found", f"Message returned: {get_pet_data["message"]}"
+
+
+# python -m pytest -v -s .\test_pet.py::test_delete_pet_unused_id
+def test_delete_pet_unused_id():
+    # ensure tested id is unused
+    unused_pet_id = 00000
+    get_unused_id_response = get_pet(unused_pet_id)
+    assert get_unused_id_response.status_code == 404, f"{get_unused_id_response.status_code} instead of 404"
+    
+    # do not create pet
+    # delete pet
+    delete_pet_response = delete_pet(unused_pet_id)
+    assert delete_pet_response.status_code == 404, f"Failded, gived code {delete_pet_response.status_code} instead of 404"
 
 
 ## API Calls
@@ -649,8 +660,8 @@ def post_data_form(pet_id, form):
     return requests.post(api + f"/pet/{pet_id}", data=form)
 
 
-def delete_pet(pet_id, api_key):
-    return requests.delete(api + f"/pet/{pet_id}", data=api_key)
+def delete_pet(pet_id):
+    return requests.delete(api + f"/pet/{pet_id}")
 
 
 def new_pet():
