@@ -26,7 +26,7 @@ def test_post_pet():
     get_pet_response = get_pet(pet_id)
     assert get_pet_response.status_code == 200
 
-    # check data are same as the ones pushed + correct fail resp
+    # check data are same as the ones pushed
     get_pet_data = get_pet_response.json()
     assert get_pet_data["status"] == pet["status"]
     assert get_pet_data["name"] == pet["name"]
