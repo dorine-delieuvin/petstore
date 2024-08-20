@@ -2,12 +2,10 @@ import pytest
 import requests
 import random
 
-# python -m pytest -v -s .\test_pet.py::test_update_pet
-
 endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
 
-
+# python -m pytest -v -s .\test_pet.py::test_get_endpoint
 def test_get_endpoint():
     get_endpoint_response = requests.get(endpoint)
     assert get_endpoint_response.status_code == 200
@@ -24,17 +22,14 @@ def test_post_pet():
 
     # check the created pet
     pet_id = post_pet_data["id"]
+    print(pet_id)
     get_pet_response = get_pet(pet_id)
     assert get_pet_response.status_code == 200
 
-    # check data are same as the ones pushed + correct fail resp
+    # check data are same as the ones pushed
     get_pet_data = get_pet_response.json()
     assert get_pet_data["status"] == pet["status"]
     assert get_pet_data["name"] == pet["name"]
-    # should fail:
-    assert (
-        get_pet_data["name"] == "douggie"
-    ), "Failed as intended, correct name: 'doggie'"
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet
@@ -81,6 +76,7 @@ def test_update_pet():
     assert get_updated_pet_data["status"] == updated_pet["status"]
 
 
+# python -m pytest -v -s .\test_pet.py::test_update_pet_400
 def test_update_pet_400():
     # testing error 400: Invalid ID supplied
     """
@@ -93,6 +89,7 @@ def test_update_pet_400():
     ), f"Fails, gives a status {update_invalid_id_response.status_code}, instead of 400."
 
 
+# python -m pytest -v -s .\test_pet.py::test_update_pet_404
 def test_update_pet_404():
     # testing error 404: Pet not found
     """
@@ -109,6 +106,7 @@ def test_update_pet_404():
     ), f"Fails, gives a status {update_invalid_pet_response.status_code}, instead of 404."
 
 
+# python -m pytest -v -s .\test_pet.py::test_post_image
 def test_post_image():
     # create pet
     pet = new_pet()
@@ -130,6 +128,498 @@ def test_post_image():
     assert image_name in post_image_data["message"]
 
 
+# python -m pytest -v -s .\test_pet.py::test_get_pet
+def test_get_pet():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    pet_id = post_pet_response.json()["id"]
+    print(pet_id)
+
+    # get pet
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+
+    # check pet info
+    get_pet_data = get_pet_response.json()
+    assert get_pet_data["id"] == pet_id
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_404
+def test_get_pet_404():
+    # don't create pet
+    # get pet
+    inexistant_pet_id = 0
+    get_pet_response = get_pet(inexistant_pet_id)
+    assert (
+        get_pet_response.status_code == 404
+    ), f"Fails, gives a status {get_pet_response.status_code}, instead of 404."
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_400
+def test_get_pet_400():
+    """
+    NOTE: when providing an invalid pet ID, the API assigns a default ID "9223372036854775807" to the pet instead of returning an error
+    """
+    # create pet with an invalid ID
+    pet = new_pet()
+    pet["id"] = -0.5
+    post_pet_response = post_pet(pet)
+    print(pet["id"])
+    assert post_pet_response.status_code == 200
+
+    invalid_pet_id = post_pet_response.json()["id"]
+    print(invalid_pet_id)
+
+    # get pet
+    get_invalid_pet_response = get_pet(invalid_pet_id)
+    assert (
+        get_invalid_pet_response.status_code == 400
+    ), f"Fails, gives a status {get_invalid_pet_response.status_code}, instead of 400."
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status
+def test_get_pet_by_status():
+    # test variables
+    status = [None, "available", "pending", "sold"]
+    tested_status = status[1]
+
+    # create pets with tested_status
+    pet1 = new_pet()
+    pet2 = new_pet()
+    pet1["status"], pet1["name"] = tested_status, "my pet 1"
+    pet2["status"], pet2["name"] = tested_status, "my pet 2"
+
+    post_pet1_response = post_pet(pet1)
+    post_pet2_response = post_pet(pet2)
+    assert post_pet1_response.status_code and post_pet2_response.status_code == 200
+
+    # find pets by tested status
+    get_pet_by_status_response = get_pet_by_status(tested_status)
+    assert get_pet_by_status_response.status_code == 200
+
+    # check all pets in response have correct tested status
+    get_pet_by_status_data = get_pet_by_status_response.json()
+
+    for pet in get_pet_by_status_data:
+        assert pet["status"] == tested_status, "Incorrect statuses in response"
+
+    # check if created IDs in response
+    pet1_id = pet1["id"]
+    pet2_id = pet2["id"]
+    found = 0
+
+    for pet in get_pet_by_status_data:
+        if pet["id"] == pet1_id:
+            found += 1
+        elif pet["id"] == pet2_id:
+            found += 1
+    if found != 2:
+        print("Created pets with tested status not found.")
+        raise Exception
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_several_statuses
+def test_get_pet_by_several_statuses():
+    """
+    NOTE: when selecting more than one status in the search, only the first status is returned in the response.
+    """
+    # test variables - update status1, 2, 3 to the status to test in list valid_status
+    valid_status = ["available", "pending", "sold"]
+    status1 = valid_status[2]
+    status2 = valid_status[1]
+    status3 = None
+
+    # create pets with tested statuses
+    for status in valid_status:
+        # create pet with status
+        pet = new_pet()
+        pet["status"], pet["name"] = status, "my pet"
+
+        post_pet_response = post_pet(pet)
+        assert post_pet_response.status_code == 200
+
+    # find pets by tested statuses
+    statuses = [status1, status2, status3]
+    get_pet_by_status_response = get_pet_by_status(status1, status2, status3)
+    assert get_pet_by_status_response.status_code == 200
+
+    # removing the "None" status from the list of tested status
+    tested_statuses = []
+    
+    for i in statuses:
+        if i != None:
+            tested_statuses.append(i)
+    
+    # check all pets in response have correct tested statuses
+    get_pet_by_status_data = get_pet_by_status_response.json()
+    returned_statuses = []
+
+    for pet in get_pet_by_status_data:
+        if pet["status"] not in returned_statuses:
+            returned_statuses.append(pet["status"])
+        assert pet["status"] in tested_statuses, f"Incorrect status {pet["status"]} in response"
+
+    # check all requested status with existing pets are returned
+    for i in tested_statuses:
+        assert (
+            i in returned_statuses
+        ), f"Missing at least status '{i}' in response:\nTested statuses: {tested_statuses}\nReturned statuses: {returned_statuses}"
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
+def test_get_pet_by_status_empty():
+    """
+    NOTE:
+    - exploited the fact "invalid" statuses don't return an error 400.
+    - used a made up status ("unused status") without creating a pet to test functionality.
+    - as many pets exist for all official status "available", "pending" and "sold", deleting all of them would be time consuming and disturbing other users.
+    """
+    # test variables
+    status = [None, "available", "pending", "sold", "unused status"]
+    tested_status = status[4]
+
+    # do not create pet
+    # try to find pets by tested status
+    get_pet_by_status_empty_response = get_pet_by_status(tested_status)
+    assert get_pet_by_status_empty_response.status_code == 200
+
+    get_pet_by_status_empty_data = get_pet_by_status_empty_response.json()
+    assert get_pet_by_status_empty_data == []
+
+
+# python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_400
+def test_get_pet_by_status_400():
+    """
+    NOTE: gives 200 even with a status other than "available", "pending" or "sold".
+    """
+    # test variables
+    invalid_status = [None, "unavailable", "not so valid", "3210", "escaped"]
+
+    # create pets with invalid_status
+    response_status_codes = []
+
+    for status in invalid_status:
+        # create pet with invalid status
+        invalid_pet = new_pet()
+        invalid_pet["status"], invalid_pet["name"] = status, "my invalid pet"
+
+        post_invalid_pet_response = post_pet(invalid_pet)
+        assert post_invalid_pet_response.status_code == 200
+
+        # find pet by the invalid_status and store response status code
+        get_invalid_pet_by_status_response = get_pet_by_status(status)
+        response_status_codes.append(get_invalid_pet_by_status_response.status_code)
+
+    print(response_status_codes)
+    assert (
+        response_status_codes[0]
+        and response_status_codes[1]
+        and response_status_codes[2]
+        and response_status_codes[3]
+        and response_status_codes[4]
+    ) == 400, (
+        f"Fails, at least one status code different from 400: {response_status_codes}"
+    )
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_name
+def test_post_data_form_name():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"]) # doggie
+    assert get_pet_data["name"] == pet["name"]
+    
+    # update name only via form
+    form = {
+        "name": "Max",
+        #"status":
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    assert post_data_form_response.status_code == 200, f"Failed, gives {post_data_form_response.status_code} instead of 200"
+    
+    # check data has been updated
+    get_updated_pet_response = get_pet(pet_id)
+    get_updated_pet_data = get_updated_pet_response.json()
+    print(get_updated_pet_data["name"])
+    assert get_updated_pet_data["name"] == form["name"]
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_status
+def test_post_data_form_status():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["status"]) # available
+    assert get_pet_data["status"] == pet["status"]
+    
+    # update status only via form
+    form = {
+        #"name": "Max",
+        "status": "sold"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    assert post_data_form_response.status_code == 200, f"Failed, gives {post_data_form_response.status_code} instead of 200"
+    
+    # check data has been updated
+    get_updated_pet_response = get_pet(pet_id)
+    get_updated_pet_data = get_updated_pet_response.json()
+    print(get_updated_pet_data["status"])
+    assert get_updated_pet_data["status"] == form["status"]
+    
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_both
+def test_post_data_form_both():
+    # create pet
+    pet = new_pet()
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"], get_pet_data["status"]) # doggie, available
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+    
+    # update name and status via form
+    form = {
+        "name": "Bella",
+        "status": "pending"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    assert post_data_form_response.status_code == 200, f"Failed, gives {post_data_form_response.status_code} instead of 200"
+    
+    # check data has been updated
+    get_updated_pet_response = get_pet(pet_id)
+    get_updated_pet_data = get_updated_pet_response.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    assert get_updated_pet_data["name"] == form["name"]
+    assert get_updated_pet_data["status"] == form["status"]
+    
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_unused_id
+def test_post_data_form_unused_id():
+    # ensure tested id is unused
+    unused_pet_id = 00000
+    try:
+        get_unused_id_response = get_pet(unused_pet_id)
+        assert get_unused_id_response.status_code == 404
+    except:
+        f"{get_unused_id_response.status_code} instead of 404"
+        
+    # attempt to update data for this unused id
+    form = {
+        "name": "Ghost",
+        #"status": "sold"
+    }
+    
+    post_data_form_response = post_data_form(unused_pet_id, form)
+    assert post_data_form_response.status_code == 404, f"Failed, gives {post_data_form_response.status_code} instead of 404"
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_empty_name
+def test_post_data_form_empty_name():
+    '''
+    NOTE: when empty name given via form, the name remain unchanged. No error is raised.
+    '''
+    # create pet
+    pet = new_pet()
+    pet["name"] = "Max"
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"], get_pet_data["status"]) # Max, available
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+        
+    # attempt to update with empty name
+    form = {
+        "name": "",
+        #"status": "sold"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    
+    # check the pet info after update
+    get_updated_pet_reponse = get_pet(pet_id)
+    assert get_updated_pet_reponse.status_code == 200
+    get_updated_pet_data = get_updated_pet_reponse.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    
+    assert post_data_form_response.status_code == 400, f"Failed, gives {post_data_form_response.status_code} instead of 400"
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_invalid_status
+def test_post_data_form_invalid_status():
+    '''
+    NOTE: when invalid status given via form, the status is created. No error is raised and code 200 is returned.
+    '''
+    # create pet
+    pet = new_pet()
+    pet["name"] = "Invalid"
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"], get_pet_data["status"]) # Invalid, available
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+        
+    # attempt to update with invalid status
+    form = {
+        #"name": "Valid",
+        "status": "flying"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    
+    # check the pet info after update
+    get_updated_pet_reponse = get_pet(pet_id)
+    assert get_updated_pet_reponse.status_code == 200
+    get_updated_pet_data = get_updated_pet_reponse.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    
+    assert post_data_form_response.status_code == 400, f"Failed, gives {post_data_form_response.status_code} instead of 400"
+
+
+# python -m pytest -v -s .\test_pet.py::test_post_data_form_no_data
+def test_post_data_form_no_data():
+    '''
+    NOTE: when empty form is submitted, the name and status remain unchanged. No error is raised, 200 is returned.
+    '''
+    # create pet
+    pet = new_pet()
+    pet["name"] = "Perfect"
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+
+    post_pet_data = post_pet_response.json()
+
+    # check the created pet data
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    get_pet_response = get_pet(pet_id)
+    assert get_pet_response.status_code == 200
+    
+    get_pet_data = get_pet_response.json()
+    print(get_pet_data["name"], get_pet_data["status"]) # Perfect, available
+    assert get_pet_data["name"] == pet["name"]
+    assert get_pet_data["status"] == pet["status"]
+        
+    # attempt to update with empty form
+    form = {
+        #"name": "Valid",
+        #"status": "sold"
+    }
+    
+    post_data_form_response = post_data_form(pet_id, form)
+    
+    # check the pet info after update
+    get_updated_pet_reponse = get_pet(pet_id)
+    assert get_updated_pet_reponse.status_code == 200
+    get_updated_pet_data = get_updated_pet_reponse.json()
+    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
+    
+    assert post_data_form_response.status_code == 400, f"Failed, gives {post_data_form_response.status_code} instead of 400"
+
+
+# python -m pytest -v -s .\test_pet.py::test_delete_pet
+def test_delete_pet():
+    # create pet
+    pet = new_pet()
+    pet["name"] = "Butter"
+    post_pet_response = post_pet(pet)
+    assert post_pet_response.status_code == 200
+    
+    post_pet_data = post_pet_response.json()
+    pet_id = post_pet_data["id"]
+    print(pet_id)
+    print(pet["name"])
+    
+    # check pet is created
+    get_pet_response = get_pet(pet_id)
+    get_pet_data = get_pet_response.json()
+
+    assert get_pet_response.status_code == 200, f"Failded, gived code {get_pet_response.status_code} instead of 200"
+    assert get_pet_data["name"] == pet["name"]
+    
+    # delete pet
+    delete_pet_response = delete_pet(pet_id)
+    assert delete_pet_response.status_code == 200
+    
+    # check pet is deleted
+    get_pet_response = get_pet(pet_id)
+    get_pet_data = get_pet_response.json()
+    assert get_pet_response.status_code == 404, f"Failded, gived code {get_pet_response.status_code} instead of 404"
+    assert get_pet_data["message"] == "Pet not found", f"Message returned: {get_pet_data["message"]}"
+
+
+# python -m pytest -v -s .\test_pet.py::test_delete_pet_unused_id
+def test_delete_pet_unused_id():
+    # ensure tested id is unused
+    unused_pet_id = 00000
+    get_unused_id_response = get_pet(unused_pet_id)
+    assert get_unused_id_response.status_code == 404, f"{get_unused_id_response.status_code} instead of 404"
+    
+    # do not create pet
+    # delete pet
+    delete_pet_response = delete_pet(unused_pet_id)
+    assert delete_pet_response.status_code == 404, f"Failded, gived code {delete_pet_response.status_code} instead of 404"
+
+
 ## API Calls
 def post_pet(pet):
     return requests.post(api + "/pet", json=pet)
@@ -145,6 +635,33 @@ def update_pet(pet):
 
 def post_image(pet_id, image):
     return requests.post(api + f"/pet/{pet_id}/uploadImage", files=image)
+
+
+def get_pet_by_status(status1=None, status2=None, status3=None):
+    url = api + f"/pet/findByStatus"
+
+    if status1 != None:
+        url += f"?status={status1}"
+
+    if status2 != None and status1 != None:
+        url += f"&status={status2}"
+    elif status2 != None:
+        url += f"?status={status2}"
+
+    if status3 != None and (status1 != None or status2 != None):
+        url += f"&status={status3}"
+    elif status3 != None:
+        url += f"?status={status3}"
+
+    print(url)
+    return requests.get(url)
+
+def post_data_form(pet_id, form):
+    return requests.post(api + f"/pet/{pet_id}", data=form)
+
+
+def delete_pet(pet_id):
+    return requests.delete(api + f"/pet/{pet_id}")
 
 
 def new_pet():
