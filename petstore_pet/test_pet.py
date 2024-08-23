@@ -117,7 +117,7 @@ def test_post_image():
 
     # upload image
     image_name = "test_image.jpg"
-    image_path = f"C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\{image_name}"
+    image_path = f"C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\petstore_pet\\{image_name}"
     image = {"file": open(image_path, "rb")}
 
     post_image_response = post_image(pet_id, image)
