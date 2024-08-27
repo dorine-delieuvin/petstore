@@ -42,6 +42,37 @@ def test_get_order_unused_id():
     assert get_invalid_order_data["message"] == "Order not found"
     
 
+# python -m pytest -v -s .\test_get_order.py::test_get_order_invalid_id
+def test_get_order_invalid_id():
+    '''
+    NOTE:
+    - getting error 500 when attempting to create (POST) an order with invalid id (e.i "000f)
+    - getting error 404 instead of 400 when attempting to retreive (GET) an order with an invalid id (e.i "000f)
+    '''
+    # create pet
+    # pet[0] == status code; pet[1] == pet_data
+    pet = create.new_pet(pet_name="Oupsy", status="available")
+    assert pet[0] == 200
+    
+    pet_id = pet[1]["id"]
+
+    # create order
+    # order[0] == status code; order[1] == order_data
+    invalid_order_id = "999"
+    order = create.new_order(pet_id, invalid_order_id)
+    print(order)
+    assert order[0] == 200
+    
+    #order_id = order[1]["id"]
+    
+    # get order
+    get_invalid_order_response = get_order(invalid_order_id)
+    assert get_invalid_order_response.status_code == 400, f"Code {get_invalid_order_response.status_code} instead of 400."
+    
+    get_invalid_order_data = get_invalid_order_response.json()
+    assert get_invalid_order_data["message"] == "Invalid ID supplied"
+
+
 ## API calls
 def get_order(order_id):
     return requests.get(api + f"/store/order/{order_id}")
