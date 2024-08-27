@@ -31,7 +31,9 @@ def new_pet(
     post_pet_response = requests.post("https://petstore.swagger.io/v2/pet", json=pet)
     assert post_pet_response.status_code == 200
     post_pet_data = post_pet_response.json()
-    return post_pet_data
+
+    # pet[0] == status code; pet[1] == pet_data
+    return post_pet_response.status_code, post_pet_data
 
 
 if __name__ == "__main__":

@@ -19,7 +19,9 @@ def new_order(pet_id=9223372036854775807):
     )
     assert post_order_response.status_code == 200
     post_order_data = post_order_response.json()
-    return post_order_data
+
+    # order[0] == status code; order[1] == order_data
+    return post_order_response.status_code, post_order_data
 
 
 if __name__ == "__main__":
