@@ -8,8 +8,8 @@ def new_pet(
     category_name="test category name",
     photo_url="my_photo_url",
     tag_name="my tag name",
+    pet_id=random.randint(1, 99999999999),
 ):
-    pet_id = random.randint(1, 99999999999)
 
     pet = {
         "id": pet_id,
