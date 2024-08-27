@@ -29,7 +29,6 @@ def new_pet(
     }
 
     post_pet_response = requests.post("https://petstore.swagger.io/v2/pet", json=pet)
-    assert post_pet_response.status_code == 200
     post_pet_data = post_pet_response.json()
 
     # pet[0] == status code; pet[1] == pet_data
@@ -53,10 +52,6 @@ def new_order(pet_id=9223372036854775807, order_id=random.randint(1, 99999999999
 
     # order[0] == status code; order[1] == order_data
     return post_order_response.status_code, post_order_data
-
-    assert (
-        post_order_response.status_code == 200
-    ), f"Code {post_order_response.status_code} instead of 200."
 
 
 if __name__ == "__main__":
