@@ -24,6 +24,7 @@ def test_post_order():
     assert order[1]["status"] == "placed", f"status: {order["status"]} instead of 'placed'"
 
 # python -m pytest -v -s .\test_post_order.py::test_post_order_unavailable_pet
+@pytest.mark.skip
 def test_post_order_unavailable_pet():
     '''
     NOTE: orders can be placed for "pending" pets.

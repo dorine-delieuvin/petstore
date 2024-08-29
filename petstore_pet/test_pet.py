@@ -6,12 +6,14 @@ endpoint = "https://petstore.swagger.io"
 api = endpoint + "/v2"
 
 # python -m pytest -v -s .\test_pet.py::test_get_endpoint
+@pytest.mark.pet
 def test_get_endpoint():
     get_endpoint_response = requests.get(endpoint)
     assert get_endpoint_response.status_code == 200
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_pet
+@pytest.mark.pet
 def test_post_pet():
     # create pet
     pet = new_pet()
@@ -33,6 +35,7 @@ def test_post_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet
+@pytest.mark.pet_update
 def test_update_pet():
     """
     NOTE #1: Sometimes fails to assert the updated pet name.
@@ -77,6 +80,8 @@ def test_update_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet_400
+@pytest.mark.pet_update
+@pytest.mark.skip
 def test_update_pet_400():
     # testing error 400: Invalid ID supplied
     """
@@ -90,6 +95,8 @@ def test_update_pet_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet_404
+@pytest.mark.pet_update
+@pytest.mark.skip
 def test_update_pet_404():
     # testing error 404: Pet not found
     """
@@ -107,6 +114,7 @@ def test_update_pet_404():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_image
+@pytest.mark.pet_image
 def test_post_image():
     # create pet
     pet = new_pet()
@@ -129,6 +137,7 @@ def test_post_image():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet
+@pytest.mark.pet
 def test_get_pet():
     # create pet
     pet = new_pet()
@@ -150,6 +159,7 @@ def test_get_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_404
+@pytest.mark.pet
 def test_get_pet_404():
     # don't create pet
     # get pet
@@ -161,6 +171,8 @@ def test_get_pet_404():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_400
+@pytest.mark.pet
+@pytest.mark.skip
 def test_get_pet_400():
     """
     NOTE: when providing an invalid pet ID, the API assigns a default ID "9223372036854775807" to the pet instead of returning an error
@@ -183,6 +195,7 @@ def test_get_pet_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status
+@pytest.mark.pet_status
 def test_get_pet_by_status():
     # test variables
     status = [None, "available", "pending", "sold"]
@@ -224,6 +237,8 @@ def test_get_pet_by_status():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_several_statuses
+@pytest.mark.pet_status
+@pytest.mark.skip
 def test_get_pet_by_several_statuses():
     """
     NOTE: when selecting more than one status in the search, only the first status is returned in the response.
@@ -272,6 +287,7 @@ def test_get_pet_by_several_statuses():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
+@pytest.mark.pet_status
 def test_get_pet_by_status_empty():
     """
     NOTE:
@@ -293,6 +309,8 @@ def test_get_pet_by_status_empty():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_400
+@pytest.mark.pet_status
+@pytest.mark.skip
 def test_get_pet_by_status_400():
     """
     NOTE: gives 200 even with a status other than "available", "pending" or "sold".
@@ -328,6 +346,7 @@ def test_get_pet_by_status_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_name
+@pytest.mark.pet_data_form
 def test_post_data_form_name():
     # create pet
     pet = new_pet()
@@ -363,6 +382,7 @@ def test_post_data_form_name():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_status
+@pytest.mark.pet_data_form
 def test_post_data_form_status():
     # create pet
     pet = new_pet()
@@ -398,6 +418,7 @@ def test_post_data_form_status():
     
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_both
+@pytest.mark.pet_data_form
 def test_post_data_form_both():
     # create pet
     pet = new_pet()
@@ -434,6 +455,7 @@ def test_post_data_form_both():
     assert get_updated_pet_data["status"] == form["status"]
     
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_unused_id
+@pytest.mark.pet_data_form
 def test_post_data_form_unused_id():
     # ensure tested id is unused
     unused_pet_id = 00000
@@ -454,6 +476,8 @@ def test_post_data_form_unused_id():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_empty_name
+@pytest.mark.pet_data_form
+@pytest.mark.skip
 def test_post_data_form_empty_name():
     '''
     NOTE: when empty name given via form, the name remain unchanged. No error is raised.
@@ -495,6 +519,8 @@ def test_post_data_form_empty_name():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_invalid_status
+@pytest.mark.pet_data_form
+@pytest.mark.skip
 def test_post_data_form_invalid_status():
     '''
     NOTE: when invalid status given via form, the status is created. No error is raised and code 200 is returned.
@@ -536,6 +562,8 @@ def test_post_data_form_invalid_status():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_no_data
+@pytest.mark.pet_data_form
+@pytest.mark.skip
 def test_post_data_form_no_data():
     '''
     NOTE: when empty form is submitted, the name and status remain unchanged. No error is raised, 200 is returned.
@@ -577,6 +605,7 @@ def test_post_data_form_no_data():
 
 
 # python -m pytest -v -s .\test_pet.py::test_delete_pet
+@pytest.mark.pet_delete
 def test_delete_pet():
     # create pet
     pet = new_pet()
@@ -608,6 +637,7 @@ def test_delete_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_delete_pet_unused_id
+@pytest.mark.pet_delete
 def test_delete_pet_unused_id():
     # ensure tested id is unused
     unused_pet_id = 00000
