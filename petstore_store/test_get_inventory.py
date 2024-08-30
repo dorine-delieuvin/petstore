@@ -2,8 +2,6 @@ import pytest
 import requests
 import create
 
-# test
-
 pytestmark = pytest.mark.store
 
 api = "https://petstore.swagger.io/v2"
