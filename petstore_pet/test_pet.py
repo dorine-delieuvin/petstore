@@ -35,6 +35,7 @@ def test_post_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet
+@pytest.mark.pet
 @pytest.mark.pet_update
 def test_update_pet():
     """
@@ -80,6 +81,7 @@ def test_update_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet_400
+@pytest.mark.pet
 @pytest.mark.pet_update
 @pytest.mark.skip
 def test_update_pet_400():
@@ -95,6 +97,7 @@ def test_update_pet_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_update_pet_404
+@pytest.mark.pet
 @pytest.mark.pet_update
 @pytest.mark.skip
 def test_update_pet_404():
@@ -114,6 +117,7 @@ def test_update_pet_404():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_image
+@pytest.mark.pet
 @pytest.mark.pet_image
 def test_post_image():
     # create pet
@@ -195,6 +199,7 @@ def test_get_pet_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status
+@pytest.mark.pet
 @pytest.mark.pet_status
 def test_get_pet_by_status():
     # test variables
@@ -237,6 +242,7 @@ def test_get_pet_by_status():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_several_statuses
+@pytest.mark.pet
 @pytest.mark.pet_status
 @pytest.mark.skip
 def test_get_pet_by_several_statuses():
@@ -287,6 +293,7 @@ def test_get_pet_by_several_statuses():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_empty
+@pytest.mark.pet
 @pytest.mark.pet_status
 def test_get_pet_by_status_empty():
     """
@@ -309,6 +316,7 @@ def test_get_pet_by_status_empty():
 
 
 # python -m pytest -v -s .\test_pet.py::test_get_pet_by_status_400
+@pytest.mark.pet
 @pytest.mark.pet_status
 @pytest.mark.skip
 def test_get_pet_by_status_400():
@@ -346,6 +354,7 @@ def test_get_pet_by_status_400():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_name
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 def test_post_data_form_name():
     # create pet
@@ -382,6 +391,7 @@ def test_post_data_form_name():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_status
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 def test_post_data_form_status():
     # create pet
@@ -418,6 +428,7 @@ def test_post_data_form_status():
     
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_both
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 def test_post_data_form_both():
     # create pet
@@ -455,6 +466,7 @@ def test_post_data_form_both():
     assert get_updated_pet_data["status"] == form["status"]
     
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_unused_id
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 def test_post_data_form_unused_id():
     # ensure tested id is unused
@@ -476,6 +488,7 @@ def test_post_data_form_unused_id():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_empty_name
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 @pytest.mark.skip
 def test_post_data_form_empty_name():
@@ -519,6 +532,7 @@ def test_post_data_form_empty_name():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_invalid_status
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 @pytest.mark.skip
 def test_post_data_form_invalid_status():
@@ -562,6 +576,7 @@ def test_post_data_form_invalid_status():
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_no_data
+@pytest.mark.pet
 @pytest.mark.pet_data_form
 @pytest.mark.skip
 def test_post_data_form_no_data():
@@ -605,6 +620,7 @@ def test_post_data_form_no_data():
 
 
 # python -m pytest -v -s .\test_pet.py::test_delete_pet
+@pytest.mark.pet
 @pytest.mark.pet_delete
 def test_delete_pet():
     # create pet
@@ -637,6 +653,7 @@ def test_delete_pet():
 
 
 # python -m pytest -v -s .\test_pet.py::test_delete_pet_unused_id
+@pytest.mark.pet
 @pytest.mark.pet_delete
 def test_delete_pet_unused_id():
     # ensure tested id is unused
