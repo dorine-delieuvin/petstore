@@ -1,6 +1,6 @@
 import pytest
 import requests
-import petstore_store.create as create
+import create
 
 pytestmark = pytest.mark.store
 
