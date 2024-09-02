@@ -54,5 +54,32 @@ def new_order(pet_id=9223372036854775807, order_id=random.randint(1, 99999999999
     return post_order_response.status_code, post_order_data
 
 
+def new_user(
+    user_id=random.randint(1, 99999999999),
+    user_name="Bob",
+    first_name="Troll",
+    last_name="Noob",
+    email="troll.noob@email.com",
+    password="p",
+    phone="07000000000",
+    user_status=1,
+):
+    user = {
+        "id": user_id,
+        "username": user_name,
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email,
+        "password": password,
+        "phone": phone,
+        "userStatus": user_status,
+    }
+
+    post_user_response = requests.post("https://petstore.swagger.io/v2/user", json=user)
+
+    # user[0] == status code; user[1] == user
+    return post_user_response.status_code, user
+
+
 if __name__ == "__main__":
-    print(new_pet(), new_order())
+    print(new_pet(), new_order(), new_user())
