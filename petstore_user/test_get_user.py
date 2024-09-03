@@ -47,7 +47,6 @@ def test_get_user_invalid_username():
 
     # check body response
     get_user_data = get_user_response.json()
-    print(get_user_data)
     assert get_user_data["message"] == "Invalid username supplied"
 
 

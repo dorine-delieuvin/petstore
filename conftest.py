@@ -14,3 +14,12 @@ def user():
         "phone": "07" + str(random.randint(000000000, 999999999)),
     }
     return bob
+
+
+@pytest.fixture
+def updated_user():
+    new_bob = {
+        "firstName": "Robert",
+        "lastName": "Junior",
+    }
+    return new_bob
