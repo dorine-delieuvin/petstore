@@ -44,6 +44,25 @@ def test_get_login_incorrect_details(user):
         assert get_login_data["message"] == "Invalid username/password supplied"
 
 
+def test_get_logout(user):
+    """
+    NOTE: set to success by default according to documentation
+    """
+    # create user
+    post_user_response = post_user(user)
+    assert post_user_response.status_code == 200
+
+    # log in
+    details = [user["username"], user["password"]]
+
+    get_login_response = get_login(details[0], details[1])
+    assert get_login_response.status_code == 200
+
+    # log out
+    get_logout_response = get_logout()
+    assert get_logout_response.status_code == 200
+
+
 ## API Calls
 def post_user(user):
     return requests.post("https://petstore.swagger.io/v2/user", json=user)
@@ -53,3 +72,7 @@ def get_login(user_name, password):
     return requests.get(
         f"https://petstore.swagger.io/v2/user/login?username={user_name}&password=%20{password}"
     )
+
+
+def get_logout():
+    return requests.get("https://petstore.swagger.io/v2/user/logout")
