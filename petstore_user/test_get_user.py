@@ -23,8 +23,9 @@ def test_get_user(user):
 
 def test_get_user_inexisting_username():
     # do not create user
-    # attempt to get inexisting user
     user_name = "Bob456"
+
+    # attempt to get inexisting user
     get_user_response = get_user(user_name)
     assert get_user_response.status_code == 404
 
@@ -40,8 +41,9 @@ def test_get_user_invalid_username():
     - tried usernames "Bob@!#", "@!#  !*/à$==`", "" (returns 405) and ",".
     """
     # do not create user
-    # attempt to get user with invalid username
     user_name = "Bob@!#"
+
+    # attempt to get user with invalid username
     get_user_response = get_user(user_name)
     assert get_user_response.status_code == 400
 
