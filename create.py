@@ -56,12 +56,12 @@ def new_order(pet_id=9223372036854775807, order_id=random.randint(1, 99999999999
 
 def new_user(
     user_id=random.randint(1, 99999999999),
-    user_name="Bob",
+    user_name="Bob" + str(random.randint(0, 10000)),
     first_name="Troll",
     last_name="Noob",
     email="troll.noob@email.com",
     password="p",
-    phone="07000000000",
+    phone="07" + str(random.randint(000000000, 999999999)),
     user_status=1,
 ):
     user = {
