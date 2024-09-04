@@ -9,17 +9,15 @@ def test_put_user(user, updated_user):
     post_user_response = post_user(user)
     assert post_user_response.status_code == 200
 
-    # for test purpose
-    # -
+    # check user has been created
     get_user_response = get_user(user["username"])
     assert get_user_response.status_code == 200
 
-    get_user_data = get_user_response.json()
-    print(f"POST: {get_user_data}")
-    # -
+    # Merge user with updated data
+    merged_user = {**user, **updated_user}
 
     # put user
-    put_user_response = put_user(user["username"], updated_user)
+    put_user_response = put_user(user["username"], merged_user)
     assert put_user_response.status_code == 200
 
     # check updated details are updated
@@ -27,7 +25,6 @@ def test_put_user(user, updated_user):
     assert get_user_response.status_code == 200
 
     get_user_data = get_user_response.json()
-    print(f"PUT: {get_user_data}")
     assert get_user_data["id"] == user["id"]
     assert get_user_data["username"] == user["username"]
     assert get_user_data["firstName"] != user["firstName"]
