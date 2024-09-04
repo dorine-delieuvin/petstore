@@ -5,9 +5,9 @@ import random
 pytestmark = pytest.mark.user
 
 
-def test_post_array():
-    # set up array
-    array = [
+def test_post_list():
+    # set up list
+    list = [
         {
             "id": random.randint(1, 99999999999),
             "username": "Bob" + str(random.randint(0, 10000)),
@@ -37,27 +37,27 @@ def test_post_array():
         },
     ]
 
-    # post array
-    post_array_response = post_array(array)
-    assert post_array_response.status_code == 200
+    # post list
+    post_list_response = post_list(list)
+    assert post_list_response.status_code == 200
 
     # check all users have been created
-    for i in array:
-        get_user_response = get_user(array[array.index(i)]["username"])
+    for i in list:
+        get_user_response = get_user(list[list.index(i)]["username"])
         assert get_user_response.status_code == 200
 
         # check user info
         get_user_data = get_user_response.json()
-        assert get_user_data["id"] == array[array.index(i)]["id"]
-        assert get_user_data["firstName"] == array[array.index(i)]["firstName"]
-        assert get_user_data["lastName"] == array[array.index(i)]["lastName"]
-        assert get_user_data["email"] == array[array.index(i)]["email"]
+        assert get_user_data["id"] == list[list.index(i)]["id"]
+        assert get_user_data["firstName"] == list[list.index(i)]["firstName"]
+        assert get_user_data["lastName"] == list[list.index(i)]["lastName"]
+        assert get_user_data["email"] == list[list.index(i)]["email"]
 
 
 ## API calls
-def post_array(array):
+def post_list(list):
     return requests.post(
-        "https://petstore.swagger.io/v2/user/createWithArray", json=array
+        "https://petstore.swagger.io/v2/user/createWithList", json=list
     )
 
 
