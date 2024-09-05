@@ -3,6 +3,28 @@ import random
 
 
 @pytest.fixture
+def new_pet():
+    pet_id = random.randint(1, 99999999999)
+
+    return {
+        "id": pet_id,
+        "category": {
+            # "id": 0, # set to 0 by default server side
+            "name": "test category name"
+        },
+        "name": "doggie",
+        "photoUrls": ["my_photo_url"],
+        "tags": [
+            {
+                # "id": 0, # set to 0 by default server side
+                "name": "my tag name"
+            }
+        ],
+        "status": "available",
+    }
+
+
+@pytest.fixture
 def user():
     bob = {
         "id": random.randint(1, 99999999999),
