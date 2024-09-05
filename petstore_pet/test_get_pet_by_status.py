@@ -78,10 +78,9 @@ def test_get_pet_by_several_statuses(new_pet, tested_statuses):
     statuses_list_cleared = []
     
     for status in statuses_list:
-        print(status)
         if status != None:
             statuses_list_cleared.append(status)
-    print(f"CLEARED LIST: {statuses_list_cleared}")
+
     # check all pets in response have statuses in requested statuses
     get_pet_by_status_data = get_pet_by_status_response.json()
     returned_statuses = []
