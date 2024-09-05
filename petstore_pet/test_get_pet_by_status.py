@@ -4,7 +4,9 @@ import random
 
 pytestmark = pytest.mark.pet
 
+# statuses to test (parametrized)
 statuses = ["available", "pending", "sold"]
+invalid_statuses = [None, "unavailable", "not so valid", "3210", "escaped!"]
 
 
 @pytest.mark.parametrize("status", statuses)
@@ -18,9 +20,7 @@ def test_get_pet_by_status(new_pet, status):
     for i in range(number_of_pets):
         pet = new_pet
 
-        pet["name"] = "my pet " + str(i + 1)
-        pet["status"] = status
-        pet["id"] = random.randint(1, 99999999999)
+        pet["id"], pet["name"], pet["status"] = random.randint(1, 99999999999), "my pet " + str(i + 1), status
         pet_ids.append(pet["id"])
 
         post_pet_response = post_pet(pet)
@@ -48,59 +48,54 @@ def test_get_pet_by_status(new_pet, status):
         for id in pet_ids:
             if pet["id"] == id:
                 found += 1
-
     print(f"FOUND: {found}/{number_of_pets}")
+    
     if found != number_of_pets:
-        print("Created pets with tested status not found.")
+        print("Created pets with tested status not found in response.")
         raise Exception
 
 
-'''@pytest.mark.skip
-def test_get_pet_by_several_statuses():
+@pytest.mark.skip
+def test_get_pet_by_several_statuses(new_pet, tested_statuses):
     """
     NOTE: when selecting more than one status in the search, only the first status is returned in the response.
     """
-    # test variables - update status1, 2, 3 to the status to test in list valid_status
-    valid_status = ["available", "pending", "sold"]
-    status1 = valid_status[2]
-    status2 = valid_status[1]
-    status3 = None
-
+    # NOTE: test variables - update statuses to test in the conftest.py file
     # create pets with tested statuses
-    for status in valid_status:
-        # create pet with status
-        pet = new_pet()
-        pet["status"], pet["name"] = status, "my pet"
+    for status in tested_statuses:
+        pet = new_pet
+        pet["id"], pet["status"], pet["name"] = random.randint(1, 99999999999), status, "my pet" + str(status)
 
         post_pet_response = post_pet(pet)
         assert post_pet_response.status_code == 200
 
     # find pets by tested statuses
-    statuses = [status1, status2, status3]
-    get_pet_by_status_response = get_pet_by_status(status1, status2, status3)
+    statuses_list = [tested_statuses[0], tested_statuses[1], tested_statuses[2]]
+    get_pet_by_status_response = get_pet_by_status(tested_statuses[0], tested_statuses[1], tested_statuses[2])
     assert get_pet_by_status_response.status_code == 200
 
     # removing the "None" status from the list of tested status
-    tested_statuses = []
+    statuses_list_cleared = []
     
-    for i in statuses:
-        if i != None:
-            tested_statuses.append(i)
-    
-    # check all pets in response have correct tested statuses
+    for status in statuses_list:
+        print(status)
+        if status != None:
+            statuses_list_cleared.append(status)
+    print(f"CLEARED LIST: {statuses_list_cleared}")
+    # check all pets in response have statuses in requested statuses
     get_pet_by_status_data = get_pet_by_status_response.json()
     returned_statuses = []
 
     for pet in get_pet_by_status_data:
         if pet["status"] not in returned_statuses:
             returned_statuses.append(pet["status"])
-        assert pet["status"] in tested_statuses, f"Incorrect status {pet["status"]} in response"
+        assert pet["status"] in statuses_list_cleared, f"Incorrect status '{pet["status"]}' in response"
 
     # check all requested status with existing pets are returned
-    for i in tested_statuses:
+    for tested_status in statuses_list_cleared:
         assert (
-            i in returned_statuses
-        ), f"Missing at least status '{i}' in response:\nTested statuses: {tested_statuses}\nReturned statuses: {returned_statuses}"
+            tested_status in returned_statuses
+        ), f"Missing at least status '{tested_status}' in response:\nTested statuses: {statuses_list_cleared}\nReturned statuses: {returned_statuses}"
 
 
 def test_get_pet_by_status_empty():
@@ -110,11 +105,9 @@ def test_get_pet_by_status_empty():
     - used a made up status ("unused status") without creating a pet to test functionality.
     - as many pets exist for all official status "available", "pending" and "sold", deleting all of them would be time consuming and disturbing other users.
     """
-    # test variables
-    status = [None, "available", "pending", "sold", "unused status"]
-    tested_status = status[4]
-
     # do not create pet
+    tested_status = "unused status"
+
     # try to find pets by tested status
     get_pet_by_status_empty_response = get_pet_by_status(tested_status)
     assert get_pet_by_status_empty_response.status_code == 200
@@ -123,40 +116,22 @@ def test_get_pet_by_status_empty():
     assert get_pet_by_status_empty_data == []
 
 
-invalid_statuses = [None, "unavailable", "not so valid", "3210", "escaped"]
-
-#@pytest.mark.skip
+@pytest.mark.skip
 @pytest.mark.parametrize("invalid_status", invalid_statuses)
-def test_get_pet_by_status_400(new_pet, invalid_statuses):
+def test_get_pet_by_status_400(new_pet, invalid_status):
     """
     NOTE: gives 200 even with a status other than "available", "pending" or "sold".
     """
-    # create pets with invalid_status
-    response_status_codes = []
+    # create pet with invalid status
+    invalid_pet = new_pet
+    invalid_pet["id"], invalid_pet["status"], invalid_pet["name"] = random.randint(1, 99999999999), invalid_status, "my invalid pet" + str(invalid_status)
 
-    for status in invalid_statuses:
-        # create pet with invalid status
-        new_pet["id"] = random.randint(1, 99999999999)
-        invalid_pet = new_pet
-        invalid_pet["status"], invalid_pet["name"] = status, "my invalid pet"
+    post_invalid_pet_response = post_pet(invalid_pet)
+    assert post_invalid_pet_response.status_code == 200
 
-        post_invalid_pet_response = post_pet(invalid_pet)
-        assert post_invalid_pet_response.status_code == 200
-
-        # find pet by the invalid_status and store response status code
-        get_invalid_pet_by_status_response = get_pet_by_status(status)
-        response_status_codes.append(get_invalid_pet_by_status_response.status_code)
-
-    print(response_status_codes)
-    assert (
-        response_status_codes[0]
-        and response_status_codes[1]
-        and response_status_codes[2]
-        and response_status_codes[3]
-        and response_status_codes[4]
-    ) == 400, (
-        f"Fails, at least one status code different from 400: {response_status_codes}"
-    )'''
+    # find pet by the invalid_status
+    get_invalid_pet_by_status_response = get_pet_by_status(invalid_status)
+    assert get_invalid_pet_by_status_response.status_code == 400
 
 
 ## API Calls
