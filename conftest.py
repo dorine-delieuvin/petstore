@@ -48,11 +48,6 @@ def updated_user():
 
 
 @pytest.fixture
-def valid_statuses():
-    return ["available", "pending", "sold"]
-
-
-@pytest.fixture
 def tested_statuses():
     # enter statuses to test in status1, status2 and status3 fields.
     # valid statuses are: "available", "pending" and "sold".
@@ -61,10 +56,3 @@ def tested_statuses():
     status2 = "pending"
     status3 = None
     return [status1, status2, status3]
-
-
-"""
-@pytest.fixture
-def invalid_statuses():
-    invalid_statuses = [None, "unavailable", "not so valid", "3210", "escaped"]
-    return invalid_statuses"""
