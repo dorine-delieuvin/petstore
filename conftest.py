@@ -4,10 +4,8 @@ import random
 
 @pytest.fixture
 def new_pet():
-    pet_id = random.randint(1, 99999999999)
-
     return {
-        "id": pet_id,
+        "id": random.randint(1, 99999999999),
         "category": {
             # "id": 0, # set to 0 by default server side
             "name": "test category name"
@@ -45,6 +43,11 @@ def updated_user():
         "lastName": "Junior",
     }
     return new_bob
+
+
+@pytest.fixture
+def valid_statuses():
+    return ["available", "pending", "sold"]
 
 
 @pytest.fixture
