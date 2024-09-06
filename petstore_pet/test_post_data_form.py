@@ -4,64 +4,90 @@ import random
 
 pytestmark = pytest.mark.pet
 
+# data to test (parametrize)
+valid_forms = [
+    {"name": "Max"},
+    {"status": "sold"},
+    {"name": "Bella", "status": "pending"},
+]
 
-def test_post_data_form_status(new_pet):
+invalid_forms = [
+    {"name": ""},
+    {"status": "flying"},
+    {},
+]
+
+
+@pytest.mark.parametrize("valid_form", valid_forms)
+def test_post_data_form_valid(new_pet, valid_form):
     # create pet
+    new_pet["name"] = "Mickey" + str(random.randint(000, 999))
     post_pet_response = post_pet(new_pet)
     assert post_pet_response.status_code == 200
 
     # check the created pet data
     pet_id = post_pet_response.json()["id"]
+
     get_pet_response = get_pet(pet_id)
     assert get_pet_response.status_code == 200
+    assert get_pet_response.json()["name"] == new_pet["name"]
+    assert get_pet_response.json()["status"] == new_pet["status"]
+    
+    print(f"\nPET DATA BEFORE UPDATE: {get_pet_response.json()["name"]}, {get_pet_response.json()["status"]}.")
 
-    get_pet_data = get_pet_response.json()
-    assert get_pet_data["status"] == new_pet["status"]
-
-    # update status only via form
-    form = {
-        # "name": "Max",
-        "status": "sold"
-    }
-
-    post_data_form_response = post_data_form(pet_id, form)
+    # update pet data via form
+    post_data_form_response = post_data_form(pet_id, valid_form)
     assert post_data_form_response.status_code == 200
 
-    # check data has been updated
+    # check data has been updated according to form
     get_updated_pet_response = get_pet(pet_id)
-    assert get_updated_pet_response.json()["status"] == form["status"]
+    assert get_updated_pet_response.status_code == 200
+
+    if "name" in valid_form:
+        assert get_updated_pet_response.json()["name"] == valid_form["name"]
+
+    if "status" in valid_form:
+        assert get_updated_pet_response.json()["status"] == valid_form["status"]
+    
+    print(f"PET DATA AFTER UPDATE: {get_updated_pet_response.json()["name"]}, {get_updated_pet_response.json()["status"]}.")
 
 
-def test_post_data_form_both(new_pet):
+
+@pytest.mark.skip
+@pytest.mark.parametrize("invalid_form", invalid_forms)
+def test_post_data_form_incorrect_data(new_pet, invalid_form):
+    """
+    NOTE 1: when empty name given via form, the name remain unchanged. No error is raised.
+    
+    NOTE 2: when invalid status given via form, the status is created and pet data updated. No error is raised and code 200 is returned.
+    
+    NOTE 3: when empty form is submitted, the name and status remain unchanged. No error is raised, 200 is returned.
+    """
     # create pet
+    new_pet["name"] = "Meannie" + str(random.randint(000, 999))
     post_pet_response = post_pet(new_pet)
     assert post_pet_response.status_code == 200
 
     # check the created pet data
     pet_id = post_pet_response.json()["id"]
+
     get_pet_response = get_pet(pet_id)
     assert get_pet_response.status_code == 200
+    assert get_pet_response.json()["name"] == new_pet["name"]
+    assert get_pet_response.json()["status"] == new_pet["status"]
+    
+    print(f"\nPET DATA BEFORE UPDATE ATTEMPT: {get_pet_response.json()["name"]}, {get_pet_response.json()["status"]}.")
 
-    get_pet_data = get_pet_response.json()
-    print(get_pet_data["name"], get_pet_data["status"])  # doggie, available
-    assert get_pet_data["name"] == new_pet["name"]
-    assert get_pet_data["status"] == new_pet["status"]
+    # update pet data via invalid form
+    post_data_form_response = post_data_form(pet_id, invalid_form)  # response asserted on last line
 
-    # update name and status via form
-    form = {"name": "Bella", "status": "pending"}
-
-    post_data_form_response = post_data_form(pet_id, form)
-    assert post_data_form_response.status_code == 200
-
-    # check data has been updated
+    # check the pet info after update attempt
     get_updated_pet_response = get_pet(pet_id)
-    get_updated_pet_data = get_updated_pet_response.json()
-    print(
-        get_updated_pet_data["name"], get_updated_pet_data["status"]
-    )  # Bella, pending
-    assert get_updated_pet_data["name"] == form["name"]
-    assert get_updated_pet_data["status"] == form["status"]
+    assert get_updated_pet_response.status_code == 200
 
+    print(f"PET DATA AFTER UPDATE ATTEMPT: {get_updated_pet_response.json()["name"]}, {get_updated_pet_response.json()["status"]}.")
+
+    assert post_data_form_response.status_code == 400
 
 def test_post_data_form_unused_id():
     # ensure tested id is unused
@@ -70,144 +96,10 @@ def test_post_data_form_unused_id():
     assert get_unused_id_response.status_code == 404
 
     # attempt to update data for this unused id
-    form = {
-        "name": "Ghost",
-        # "status": "sold"
-    }
+    form = {"name": "Ghost"}
 
     post_data_form_response = post_data_form(unused_pet_id, form)
     assert post_data_form_response.status_code == 404
-
-
-@pytest.mark.skip
-def test_post_data_form_empty_name(new_pet):
-    """
-    NOTE: when empty name given via form, the name remain unchanged. No error is raised.
-    """
-    # create pet
-    new_pet["name"] = "Max"
-    post_pet_response = post_pet(new_pet)
-    assert post_pet_response.status_code == 200
-
-    # check the created pet data
-    pet_id = post_pet_response.json()["id"]
-    get_pet_response = get_pet(pet_id)
-    assert get_pet_response.status_code == 200
-
-    get_pet_data = get_pet_response.json()
-    print(get_pet_data["name"], get_pet_data["status"])  # Max, available
-    assert get_pet_data["name"] == new_pet["name"]
-    assert get_pet_data["status"] == new_pet["status"]
-
-    # attempt to update with empty name
-    form = {
-        "name": "",
-        # "status": "sold"
-    }
-
-    post_data_form_response = post_data_form(pet_id, form)  # response asserted later
-
-    # check the pet info after update
-    get_updated_pet_reponse = get_pet(pet_id)
-    assert get_updated_pet_reponse.status_code == 200
-
-    print(
-        get_updated_pet_reponse.json()["name"], get_updated_pet_reponse.json()["status"]
-    )  # still Max, available (does not update)
-
-    assert post_data_form_response.status_code == 400
-
-
-# python -m pytest -v -s .\test_pet.py::test_post_data_form_invalid_status
-@pytest.mark.pet
-@pytest.mark.pet_data_form
-@pytest.mark.skip
-def test_post_data_form_invalid_status():
-    """
-    NOTE: when invalid status given via form, the status is created. No error is raised and code 200 is returned.
-    """
-    # create pet
-    pet = new_pet()
-    pet["name"] = "Invalid"
-    post_pet_response = post_pet(pet)
-    assert post_pet_response.status_code == 200
-
-    post_pet_data = post_pet_response.json()
-
-    # check the created pet data
-    pet_id = post_pet_data["id"]
-    print(pet_id)
-    get_pet_response = get_pet(pet_id)
-    assert get_pet_response.status_code == 200
-
-    get_pet_data = get_pet_response.json()
-    print(get_pet_data["name"], get_pet_data["status"])  # Invalid, available
-    assert get_pet_data["name"] == pet["name"]
-    assert get_pet_data["status"] == pet["status"]
-
-    # attempt to update with invalid status
-    form = {
-        # "name": "Valid",
-        "status": "flying"
-    }
-
-    post_data_form_response = post_data_form(pet_id, form)
-
-    # check the pet info after update
-    get_updated_pet_reponse = get_pet(pet_id)
-    assert get_updated_pet_reponse.status_code == 200
-    get_updated_pet_data = get_updated_pet_reponse.json()
-    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
-
-    assert (
-        post_data_form_response.status_code == 400
-    ), f"Failed, gives {post_data_form_response.status_code} instead of 400"
-
-
-# python -m pytest -v -s .\test_pet.py::test_post_data_form_no_data
-@pytest.mark.pet
-@pytest.mark.pet_data_form
-@pytest.mark.skip
-def test_post_data_form_no_data():
-    """
-    NOTE: when empty form is submitted, the name and status remain unchanged. No error is raised, 200 is returned.
-    """
-    # create pet
-    pet = new_pet()
-    pet["name"] = "Perfect"
-    post_pet_response = post_pet(pet)
-    assert post_pet_response.status_code == 200
-
-    post_pet_data = post_pet_response.json()
-
-    # check the created pet data
-    pet_id = post_pet_data["id"]
-    print(pet_id)
-    get_pet_response = get_pet(pet_id)
-    assert get_pet_response.status_code == 200
-
-    get_pet_data = get_pet_response.json()
-    print(get_pet_data["name"], get_pet_data["status"])  # Perfect, available
-    assert get_pet_data["name"] == pet["name"]
-    assert get_pet_data["status"] == pet["status"]
-
-    # attempt to update with empty form
-    form = {
-        # "name": "Valid",
-        # "status": "sold"
-    }
-
-    post_data_form_response = post_data_form(pet_id, form)
-
-    # check the pet info after update
-    get_updated_pet_reponse = get_pet(pet_id)
-    assert get_updated_pet_reponse.status_code == 200
-    get_updated_pet_data = get_updated_pet_reponse.json()
-    print(get_updated_pet_data["name"], get_updated_pet_data["status"])
-
-    assert (
-        post_data_form_response.status_code == 400
-    ), f"Failed, gives {post_data_form_response.status_code} instead of 400"
 
 
 ## API Calls

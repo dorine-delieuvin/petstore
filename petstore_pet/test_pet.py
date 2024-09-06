@@ -85,38 +85,7 @@ def test_get_endpoint():
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_name
 @pytest.mark.pet
 @pytest.mark.pet_data_form
-def test_post_data_form_name():
-    # create pet
-    pet = new_pet()
-    post_pet_response = post_pet(pet)
-    assert post_pet_response.status_code == 200
 
-    post_pet_data = post_pet_response.json()
-
-    # check the created pet data
-    pet_id = post_pet_data["id"]
-    print(pet_id)
-    get_pet_response = get_pet(pet_id)
-    assert get_pet_response.status_code == 200
-    
-    get_pet_data = get_pet_response.json()
-    print(get_pet_data["name"]) # doggie
-    assert get_pet_data["name"] == pet["name"]
-    
-    # update name only via form
-    form = {
-        "name": "Max",
-        #"status":
-    }
-    
-    post_data_form_response = post_data_form(pet_id, form)
-    assert post_data_form_response.status_code == 200, f"Failed, gives {post_data_form_response.status_code} instead of 200"
-    
-    # check data has been updated
-    get_updated_pet_response = get_pet(pet_id)
-    get_updated_pet_data = get_updated_pet_response.json()
-    print(get_updated_pet_data["name"])
-    assert get_updated_pet_data["name"] == form["name"]
 
 
 # python -m pytest -v -s .\test_pet.py::test_post_data_form_status
