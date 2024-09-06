@@ -9,19 +9,16 @@ def test_post_image(new_pet):
     post_pet_response = post_pet(new_pet)
     assert post_pet_response.status_code == 200
 
+    # upload image
     pet_id = post_pet_response.json()["id"]
 
-    # upload image
     image_name = "test_image.jpg"
     image_path = f"C:\\Users\\Administrator\\Documents\\Workspace\\web_app_testing\\pet_api\\petstore_pet\\{image_name}"
     image = {"file": open(image_path, "rb")}
 
     post_image_response = post_image(pet_id, image)
     assert post_image_response.status_code == 200
-
-    # check image data
-    post_image_data = post_image_response.json()
-    assert image_name in post_image_data["message"]
+    assert image_name in post_image_response.json()["message"]
 
 
 ## API Calls

@@ -13,7 +13,6 @@ def test_get_inventory(new_pet, valid_statuses):
             "Fetch" + str(random.randint(000, 999)),
             status,
         )
-        print(f"\n{new_pet}")
 
         post_pet_response = post_pet(new_pet)
         assert post_pet_response.status_code == 200
@@ -56,7 +55,6 @@ def test_post_inventory(new_pet, valid_statuses):
             "Spot" + str(random.randint(000, 999)),
             status,
         )
-        print(f"\n{new_pet}")
 
         post_pet_response = post_pet(new_pet)
         assert post_pet_response.status_code == 200

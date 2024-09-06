@@ -39,12 +39,13 @@ def test_get_pet_400(new_pet):
     """
     # create pet with an invalid ID
     new_pet["id"] = -0.5
+
     post_pet_response = post_pet(new_pet)
     assert post_pet_response.status_code == 200
 
+    # get pet
     invalid_pet_id = post_pet_response.json()["id"]
 
-    # get pet
     get_invalid_pet_response = get_pet(invalid_pet_id)
     assert get_invalid_pet_response.status_code == 400, print(
         get_invalid_pet_response.json()["id"]
