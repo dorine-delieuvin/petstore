@@ -1,9 +1,7 @@
 import pytest
 import requests
-import random
 
-endpoint = "https://petstore.swagger.io"
-api = endpoint + "/v2"
+pytestmark = pytest.mark.pet
 
 
 @pytest.mark.pet
@@ -27,8 +25,8 @@ def test_post_pet(new_pet):
 
 ## API Calls
 def post_pet(pet):
-    return requests.post(api + "/pet", json=pet)
+    return requests.post("https://petstore.swagger.io/v2/pet", json=pet)
 
 
 def get_pet(pet_id):
-    return requests.get(api + f"/pet/{pet_id}")
+    return requests.get(f"https://petstore.swagger.io/v2/pet/{pet_id}")

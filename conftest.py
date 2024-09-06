@@ -56,3 +56,15 @@ def tested_statuses():
     status2 = "pending"
     status3 = None
     return [status1, status2, status3]
+
+
+@pytest.fixture
+def new_order():
+    return {
+        "id": random.randint(1, 99999999999),
+        "petId": "9223372036854775807",
+        "quantity": 1,
+        # "shipDate": "2024-08-23T13:54:01.624Z",
+        "status": "placed",
+        "complete": True,
+    }
