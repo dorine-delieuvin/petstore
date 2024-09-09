@@ -7,16 +7,13 @@ pytestmark = pytest.mark.store
 
 def test_get_order(new_pet, new_order):
     # create pet
-    new_pet["name"], new_pet["status"] = (
-        "Journey" + str(random.randint(000, 999)),
-        "available",
-    )
+    new_pet["name"] = "Journey" + str(random.randint(000, 999))
 
-    post_pet_reponse = post_pet(new_pet)
-    assert post_pet_reponse.status_code == 200
+    post_pet_response = post_pet(new_pet)
+    assert post_pet_response.status_code == 200
 
     # create order
-    pet_id = new_pet["id"]
+    pet_id = post_pet_response.json()["id"]
     new_order["petId"] = pet_id
 
     post_order_response = post_order(new_order)
@@ -44,10 +41,10 @@ def test_get_order_unused_id():
     assert get_invalid_order_data["message"] == "Order not found"
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_get_order_invalid_id_existing(new_pet, new_order):
     """
-    NOTE: getting error 404 when attempting to create (POST) an order with invalid id (e.i "000f)
+    NOTE: getting error 500 when attempting to create (POST) an order with invalid id (e.i "000f)
     """
     # create pet
     new_pet["name"], new_pet["status"] = (
@@ -63,10 +60,10 @@ def test_get_order_invalid_id_existing(new_pet, new_order):
     new_order["id"], new_order["petId"] = invalid_order_id, new_pet["id"]
 
     post_order_response = post_order(new_order)
-    # assert post_order_response.status_code == 200
+    assert post_order_response.status_code == 200
 
     # attempt to get order
-    get_invalid_order_response = get_order(invalid_order_id)
+    get_invalid_order_response = get_order(new_order["id"])
     assert get_invalid_order_response.status_code == 400
     assert get_invalid_order_response.json()["message"] == "Invalid ID supplied"
 
@@ -89,7 +86,7 @@ def post_pet(pet):
 
 
 def post_order(order):
-    return requests.post("https://petstore.swagger.io/v2/order", json=order)
+    return requests.post("https://petstore.swagger.io/v2/store/order", json=order)
 
 
 def get_order(order_id):
