@@ -35,7 +35,7 @@ def new_order():
 
 
 @pytest.fixture
-def user():
+def new_user():
     bob = {
         "id": random.randint(1, 99999999999),
         "username": "Bob" + str(random.randint(0, 10000)),
