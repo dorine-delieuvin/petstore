@@ -4,13 +4,13 @@ import requests
 pytestmark = pytest.mark.user
 
 
-def test_get_login(user):
+def test_get_login(new_user):
     # create user
-    post_user_response = post_user(user)
+    post_user_response = post_user(new_user)
     assert post_user_response.status_code == 200
 
     # log in
-    details = [user["username"], user["password"]]
+    details = [new_user["username"], new_user["password"]]
 
     get_login_response = get_login(details[0], details[1])
     assert get_login_response.status_code == 200
@@ -44,16 +44,16 @@ def test_get_login_incorrect_details(user):
         assert get_login_data["message"] == "Invalid username/password supplied"
 
 
-def test_get_logout(user):
+def test_get_logout(new_user):
     """
     NOTE: set to success by default according to documentation
     """
     # create user
-    post_user_response = post_user(user)
+    post_user_response = post_user(new_user)
     assert post_user_response.status_code == 200
 
     # log in
-    details = [user["username"], user["password"]]
+    details = [new_user["username"], new_user["password"]]
 
     get_login_response = get_login(details[0], details[1])
     assert get_login_response.status_code == 200

@@ -1,6 +1,5 @@
 import pytest
 import requests
-import create
 import random
 
 pytestmark = pytest.mark.user
@@ -70,6 +69,50 @@ def test_post_user(user_data):
     assert get_user_data["id"] == user_data["id"]
 
 
+def test_post_user_double(new_user):
+    """
+    NOTE 1: no error message when attempting to create two users with same username.
+    NOTE 2: using POST with an existing username updates user info (not specified in API documentation).
+    NOTE 3: so the update is what's tested here in the end.
+    """
+    # create user 1
+    new_user["username"] = "Mike" + str(random.randint(0, 10000))
+
+    new_user1 = new_user
+    new_user1["firstName"] = "user1"
+    new_user1["lastName"] = "USER1"
+
+    post_user_response1 = post_user(new_user1)
+    assert post_user_response1.status_code == 200
+
+    # create second user with same username
+    new_user2 = {
+        "id": new_user1["id"],
+        "username": new_user1["username"],
+        "firstName": "user2",
+        "lastName": "USER2",
+        "email": new_user1["email"],
+        "password": new_user1["password"],
+        "phone": new_user1["phone"],
+    }
+
+    post_user_response2 = post_user(new_user2)
+    assert post_user_response2.status_code == 200
+
+    # get user details
+    get_user_response = get_user(new_user["username"])
+    assert get_user_response.status_code == 200
+
+    # check details are updated
+    get_user_data = get_user_response.json()
+    assert get_user_data["id"] == new_user1["id"] == new_user2["id"]
+    assert get_user_data["username"] == new_user1["username"] == new_user2["username"]
+    assert (
+        get_user_data["firstName"] == new_user2["firstName"] != new_user1["firstName"]
+    )
+    assert get_user_data["lastName"] == new_user2["lastName"] != new_user1["lastName"]
+
+
 @pytest.mark.skip
 @pytest.mark.parametrize("user_data", invalid_user_info)
 def test_post_user_invalid_info(user_data):
@@ -85,36 +128,6 @@ def test_post_user_invalid_info(user_data):
     # get user details
     get_user_response = get_user(user_data["username"])
     assert get_user_response.status_code == 400
-
-
-def test_post_user_double():
-    """
-    NOTE 1: no error message when attempting to create two users with same username.
-    NOTE 2: using POST with an existing username updates user info (not specified in API documentation).
-    """
-    # create user
-    # user[0] == status code; user[1] == user_data
-    user1 = create.new_user(user_name="Mike" + str(random.randint(0, 10000)))
-    assert user1[0] == 200
-
-    user_name = user1[1]["username"]
-
-    # create second user with same username
-    user2 = create.new_user(user_name=user_name, first_name="Troll2", last_name="Noob2")
-    # assert user2[0] == 400  # returns 200: intended behaviour
-    assert user2[0] == 200
-
-    # get user details
-    get_user_response = get_user(user_name)
-    assert get_user_response.status_code == 200
-
-    # check details are updated
-    get_user_data = get_user_response.json()
-    print(get_user_data)
-    assert get_user_data["id"] == user1[1]["id"] == user2[1]["id"]
-    assert get_user_data["username"] == user1[1]["username"] == user2[1]["username"]
-    assert get_user_data["firstName"] == user2[1]["firstName"]
-    assert get_user_data["lastName"] == user2[1]["lastName"]
 
 
 ## API calls

@@ -1,49 +1,55 @@
 import pytest
 import requests
-import create
+import random
 
 pytestmark = pytest.mark.store
 
-api = "https://petstore.swagger.io/v2"
+# statuses to test (parametrized)
+statuses = ["available", "pending", "sold", "unofficial status that should not exist"]
 
 
-# python -m pytest -v -s .\test_post_order.py::test_post_order
-def test_post_order():
+@pytest.mark.parametrize("status", statuses)
+def test_post_order(new_pet, new_order, status):
+    """
+    NOTE: orders can be placed for pets with "pending", "sold" and unvalid statuses.
+    """
     # create pet
-    # pet[0] == status code; pet[1] == pet_data
-    pet = create.new_pet(pet_name="Pennies", status="available")
-    assert pet[0] == 200
-    
-    pet_id = pet[1]["id"]
+    new_pet["name"] = "Staying" + str(status) + str(random.randint(000, 999))
+    new_pet["status"] = str(status)
+
+    post_pet_response = post_pet(new_pet)
+    assert post_pet_response.status_code == 200
 
     # create order
-    # order[0] == status code; order[1] == order_data
-    order = create.new_order(pet_id)
-    assert order[0] == 200, f"Getting {order[0]} instead of 200."
+    new_order["petId"] = new_pet["id"]
 
-    # check order details
-    assert order[1]["petId"] == pet_id, f"{order["perID"]} instead of {pet_id}"
-    assert order[1]["status"] == "placed", f"status: {order["status"]} instead of 'placed'"
+    post_order_response = post_order(new_order)
 
-# python -m pytest -v -s .\test_post_order.py::test_post_order_unavailable_pet
-@pytest.mark.skip
-def test_post_order_unavailable_pet():
-    '''
-    NOTE: orders can be placed for "pending" pets.
-    '''
-    # create pet
-    # pet[0] == status code; pet[1] == pet_data
-    unavailable_pet = create.new_pet(pet_name="Staying", status="pending")
-    assert unavailable_pet[0] == 200
-    
-    pet_id = unavailable_pet[1]["id"]
-    
-    # create order
-    # order[0] == status code; order[1] == order_data
-    order = create.new_order(pet_id)
-    assert order[0] == 400, f"Getting {order[0]} instead of 400."
+    # orders can be placed for "available" pets
+    if post_pet_response.json()["status"] == "available":
+        assert post_order_response.status_code == 200
+        assert post_order_response.json()["status"] == "placed"
+
+    # orders should not be placed for "sold" or "pendng" pets
+    elif (
+        post_pet_response.json()["status"] == "pending"
+        or post_pet_response.json()["status"] == "sold"
+    ):
+        assert (
+            post_order_response.status_code == 400
+        ), "Order placed for a pet with 'pending' or 'sold' status"
+
+    # other status *should* not be possible
+    else:
+        assert (
+            post_order_response.status_code == 400
+        ), "Order placed for a pet with an unofficial status"
 
 
 ## API Calls
+def post_pet(pet):
+    return requests.post("https://petstore.swagger.io/v2/pet", json=pet)
+
+
 def post_order(order):
-    return requests.post(api + "/store/order", json=order)
+    return requests.post("https://petstore.swagger.io/v2/store/order", json=order)

@@ -4,32 +4,32 @@ import requests
 pytestmark = pytest.mark.user
 
 
-def test_put_user(user, updated_user):
+def test_put_user(new_user, updated_user):
     # create user
-    post_user_response = post_user(user)
+    post_user_response = post_user(new_user)
     assert post_user_response.status_code == 200
 
     # check user has been created
-    get_user_response = get_user(user["username"])
+    get_user_response = get_user(new_user["username"])
     assert get_user_response.status_code == 200
 
     # Merge user with updated data
-    merged_user = {**user, **updated_user}
+    merged_user = {**new_user, **updated_user}
 
     # put user
-    put_user_response = put_user(user["username"], merged_user)
+    put_user_response = put_user(new_user["username"], merged_user)
     assert put_user_response.status_code == 200
 
     # check updated details are updated
-    get_user_response = get_user(user["username"])
+    get_user_response = get_user(new_user["username"])
     assert get_user_response.status_code == 200
 
     get_user_data = get_user_response.json()
-    assert get_user_data["id"] == user["id"]
-    assert get_user_data["username"] == user["username"]
-    assert get_user_data["firstName"] != user["firstName"]
-    assert get_user_data["lastName"] != user["lastName"]
-    assert get_user_data["phone"] == user["phone"]
+    assert get_user_data["id"] == new_user["id"]
+    assert get_user_data["username"] == new_user["username"]
+    assert get_user_data["firstName"] != new_user["firstName"]
+    assert get_user_data["lastName"] != new_user["lastName"]
+    assert get_user_data["phone"] == new_user["phone"]
 
 
 @pytest.mark.skip
@@ -46,7 +46,6 @@ def test_put_user_inexisting_username(updated_user):
     print(get_user_data)
 
     # attempt to update inexisting user
-
     put_user_response = put_user(user_name, updated_user)
     assert put_user_response.status_code == 404
 
