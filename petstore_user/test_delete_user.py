@@ -4,21 +4,21 @@ import requests
 pytestmark = pytest.mark.user
 
 
-def test_delet_user(user):
+def test_delet_user(new_user):
     # create user
-    post_user_response = post_user(user)
+    post_user_response = post_user(new_user)
     assert post_user_response.status_code == 200
 
     # check user has been created
-    get_user_response = get_user(user["username"])
+    get_user_response = get_user(new_user["username"])
     assert get_user_response.status_code == 200
 
     # delete user
-    delete_user_response = delete_user(user["username"])
+    delete_user_response = delete_user(new_user["username"])
     assert delete_user_response.status_code == 200
 
     # check user has been deleted
-    get_user_response = get_user(user["username"])
+    get_user_response = get_user(new_user["username"])
     assert get_user_response.status_code == 404
 
 

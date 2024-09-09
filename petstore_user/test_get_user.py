@@ -4,21 +4,21 @@ import requests
 pytestmark = pytest.mark.user
 
 
-def test_get_user(user):
+def test_get_user(new_user):
     # create user
-    post_user_response = post_user(user)
+    post_user_response = post_user(new_user)
     assert post_user_response.status_code == 200
 
     # get user
-    get_user_response = get_user(user["username"])
+    get_user_response = get_user(new_user["username"])
     assert get_user_response.status_code == 200
 
     # check user details
     get_user_data = get_user_response.json()
-    assert get_user_data["id"] == user["id"]
-    assert get_user_data["username"] == user["username"]
-    assert get_user_data["email"] == user["email"]
-    assert get_user_data["phone"] == user["phone"]
+    assert get_user_data["id"] == new_user["id"]
+    assert get_user_data["username"] == new_user["username"]
+    assert get_user_data["email"] == new_user["email"]
+    assert get_user_data["phone"] == new_user["phone"]
 
 
 def test_get_user_inexisting_username():
